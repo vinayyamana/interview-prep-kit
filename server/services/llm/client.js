@@ -1,12 +1,13 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const MODEL = process.env.GEMINI_MODEL || "gemini-3.6-flash";
 const MAX_RETRIES = 4;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function isRetryable(err) {
   const status = err.status || err.statusCode;
+  if (/PerDay/i.test(err.message || "")) return false;
   return (
     status === 429 ||
     status >= 500 ||
