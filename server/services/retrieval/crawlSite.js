@@ -8,7 +8,7 @@ const UA = "InterviewPrepKitBot";
 const KEYWORDS = [
   [/interview|hiring[-_ ]?process|how[-_ ]we[-_ ]hire|recruit/i, 10],
   [/careers?|jobs?|join|work[-_ ]with[-_ ]us|hiring/i, 8],
-  [/handbook|culture|values|principles/i, 5],
+  [/handbook|culture|values|principles/i, 2],
   [/engineering|tech|team|about|company|who[-_ ]we[-_ ]are|mission/i, 3],
   [/blog|press|news/i, 1],
 ];
