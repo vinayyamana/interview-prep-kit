@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 // ⚠️ Adjust this import to match your actual pipeline/assembler file
-const { assembleKit } = require('../pipeline/assembleKit');
+const { assembleKit } = require('../services/assembleKit');
 
 function getArg(flagName) {
   const idx = process.argv.indexOf(flagName);

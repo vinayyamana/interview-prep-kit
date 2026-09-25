@@ -1,33 +1,390 @@
 {
   "version": "1.0",
-  "generated_at": "2026-09-25T08:48:21.485Z",
+  "generated_at": "2026-09-25T09:55:00.216Z",
   "kits": [
     {
       "id": "case-01",
-      "status": "failed",
-      "kit": null,
-      "error": {
-        "code": "GENERATION_FAILED",
-        "message": "Question generation failed: Cannot read properties of undefined (reading 'requirements')"
-      }
+      "status": "ok",
+      "kit": {
+        "source": {
+          "company": "posthog",
+          "company_url": "https://posthog.com",
+          "role": "Backend Engineer",
+          "location": "",
+          "jd_chars": 215,
+          "researched_at": "2026-09-25T09:54:57.070Z",
+          "pages_used": [
+            "https://posthog.com/",
+            "https://posthog.com/careers",
+            "https://posthog.com/handbook",
+            "https://posthog.com/handbook/company/culture",
+            "https://posthog.com/about",
+            "https://posthog.com/handbook/why-does-posthog-exist",
+            "https://posthog.com/handbook/people/spending-money",
+            "https://posthog.com/handbook/story"
+          ]
+        },
+        "company_brief": {
+          "summary": "ProductsPricingDocsCommunityCompanyMoreGet started – free",
+          "what_they_do": "ProductsPricingDocsCommunityCompanyMoreGet started – free",
+          "sources": [
+            "https://posthog.com/",
+            "https://posthog.com/careers",
+            "https://posthog.com/handbook",
+            "https://posthog.com/handbook/company/culture",
+            "https://posthog.com/about",
+            "https://posthog.com/handbook/why-does-posthog-exist",
+            "https://posthog.com/handbook/people/spending-money",
+            "https://posthog.com/handbook/story"
+          ]
+        },
+        "role": {
+          "title": "Backend Engineer",
+          "seniority": "Senior",
+          "responsibilities": [
+            "mentor junior engineers"
+          ],
+          "requirements": [
+            {
+              "id": "r1",
+              "text": "5+ years of experience with Node.js",
+              "kind": "technical",
+              "priority": "must"
+            },
+            {
+              "id": "r2",
+              "text": "strong MongoDB experience",
+              "kind": "technical",
+              "priority": "must"
+            },
+            {
+              "id": "r3",
+              "text": "mentor junior engineers",
+              "kind": "behavioural",
+              "priority": "must"
+            },
+            {
+              "id": "r4",
+              "text": "Kubernetes experience",
+              "kind": "technical",
+              "priority": "nice"
+            }
+          ]
+        },
+        "questions": [
+          {
+            "id": "q1",
+            "category": "technical",
+            "requirement_ids": [
+              "r1"
+            ],
+            "prompt": "Explain how the Node.js single-threaded event loop handles heavy CPU-bound tasks without blocking the main thread, and describe how you would offload such work using worker threads.",
+            "answer_outline": "A strong answer explains that Node.js uses libuv and a thread pool for I/O, but CPU-heavy tasks block the event loop. To prevent this, candidates should discuss implementing worker_threads to execute JavaScript in parallel, passing data via MessageChannels, and managing thread pool overhead.",
+            "difficulty": 2
+          },
+          {
+            "id": "q2",
+            "category": "technical",
+            "requirement_ids": [
+              "r1"
+            ],
+            "prompt": "How do you diagnose and resolve memory leaks in a high-throughput Node.js production application?",
+            "answer_outline": "A strong answer mentions taking heap snapshots using V8 profiling tools or Clinic.js, identifying retained objects that should have been garbage collected, and common culprits like global variables, unclosed event listeners, or growing caches.",
+            "difficulty": 3
+          },
+          {
+            "id": "q3",
+            "category": "technical",
+            "requirement_ids": [
+              "r2"
+            ],
+            "prompt": "Design a complex MongoDB aggregation pipeline that performs a multi-stage join ($lookup), filters documents efficiently, and computes rolling metrics using $facet or $bucket, highlighting indexing considerations for optimal performance.",
+            "answer_outline": "A strong answer walks through structuring stages carefully—filtering early with $match to reduce the working set before $lookup, ensuring compound indexes support the query predicates, and explaining how explain() is used to verify execution plans.",
+            "difficulty": 3
+          },
+          {
+            "id": "q4",
+            "category": "technical",
+            "requirement_ids": [
+              "r2"
+            ],
+            "prompt": "Explain the trade-offs between different MongoDB write concerns (w: 1, w: majority) and read concerns (local, available, linearizable), and how they impact consistency and latency in a replica set.",
+            "answer_outline": "A strong answer contrasts performance with data durability. 'w: majority' guarantees writes are committed to a majority of nodes before returning, protecting against rollbacks during failovers, while higher read concerns ensure data is acknowledged by the replica set, trading off response time.",
+            "difficulty": 2
+          },
+          {
+            "id": "q5",
+            "category": "technical",
+            "requirement_ids": [
+              "r4"
+            ],
+            "prompt": "How would you configure Kubernetes Liveness, Readiness, and Startup probes for a Node.js application that has a slow startup phase due to database connection initialization and cache warming?",
+            "answer_outline": "A strong answer explains the purpose of each probe: Startup probes protect slow-starting containers by delaying liveness/readiness checks; Liveness probes restart dead or deadlocked processes; Readiness probes control traffic routing. They should provide a sample YAML snippet demonstrating appropriate initialDelaySeconds and periodSeconds.",
+            "difficulty": 2
+          },
+          {
+            "id": "q6",
+            "category": "behavioural",
+            "requirement_ids": [
+              "r3"
+            ],
+            "prompt": "Tell me about a time when you took a junior engineer under your wing to help them grow. What specific mentorship strategies did you use, and how did you measure their progress?",
+            "answer_outline": "Describe a specific junior engineer, the gaps or goals they had, the structured approach to mentoring (e.g., pairing, code reviews, delegating progressively harder tasks), and the positive outcome in their autonomy and technical skills.",
+            "difficulty": 2
+          },
+          {
+            "id": "q7",
+            "category": "behavioural",
+            "requirement_ids": [
+              "r3"
+            ],
+            "prompt": "Describe a situation where a junior engineer struggled with a complex backend task or architectural concept. How did you guide them to the solution without simply doing the work for them?",
+            "answer_outline": "Explain the context of the struggle, how you used the Socratic method or guided questioning to help them understand the underlying principles, and the final resolution where they successfully completed the task with newfound confidence.",
+            "difficulty": 3
+          },
+          {
+            "id": "q8",
+            "category": "system-design",
+            "requirement_ids": [
+              "r1"
+            ],
+            "prompt": "Design a distributed job processing and event-driven architecture using Node.js that handles high-throughput telemetry ingestion. Discuss how you manage event loops, memory limits, and asynchronous worker pools under heavy load.",
+            "answer_outline": "A strong answer should discuss using worker threads or clustering in Node.js, implementing backpressure for streams, using Redis or a similar broker for queuing, and monitoring event loop lag to prevent bottlenecks.",
+            "difficulty": 3
+          },
+          {
+            "id": "q9",
+            "category": "system-design",
+            "requirement_ids": [
+              "r1"
+            ],
+            "prompt": "Architect a scalable Node.js microservices backend that communicates via gRPC and message brokers. Explain how you would handle graceful shutdowns, error handling, and distributed tracing across services.",
+            "answer_outline": "The candidate should detail how to intercept unhandled rejections, gracefully drain HTTP/gRPC servers before exit, propagate correlation IDs for tracing, and manage connection pools efficiently.",
+            "difficulty": 2
+          },
+          {
+            "id": "q10",
+            "category": "system-design",
+            "requirement_ids": [
+              "r2"
+            ],
+            "prompt": "Design a high-volume data storage and retrieval system using MongoDB to handle multi-tenant time-series and event capture data. Address schema design, sharding strategies, and maintaining query performance as data scales to billions of documents.",
+            "answer_outline": "Discuss careful selection of shard keys, time-series collections or bucket patterns, efficient indexing strategies, avoiding large document growth, and handling aggregation pipelines efficiently.",
+            "difficulty": 3
+          },
+          {
+            "id": "q11",
+            "category": "system-design",
+            "requirement_ids": [
+              "r2"
+            ],
+            "prompt": "How would you design a data tier in MongoDB to support heavy concurrent writes alongside complex analytical read queries? Discuss consistency models, replication lag, and read/write concerns.",
+            "answer_outline": "Explain the use of secondary reads with appropriate read preferences, optimizing indexes for both transactional updates and analytics, and tuning write concerns based on durability requirements.",
+            "difficulty": 2
+          },
+          {
+            "id": "q12",
+            "category": "system-design",
+            "requirement_ids": [
+              "r4"
+            ],
+            "prompt": "Design a deployment and scaling strategy on Kubernetes for a stateful Node.js backend application connecting to MongoDB. Discuss resource quotas, horizontal pod autoscaling based on custom metrics, and managing configuration securely.",
+            "answer_outline": "Cover the use of Deployments/StatefulSets, configuring liveness and readiness probes, setting up HPA using CPU or custom Prometheus metrics, utilizing Kubernetes Secrets/ConfigMaps, and managing persistent volume claims if necessary.",
+            "difficulty": 3
+          },
+          {
+            "id": "q13",
+            "category": "company-fit",
+            "requirement_ids": [
+              "r3"
+            ],
+            "prompt": "At PostHog, engineers operate with a high degree of autonomy and transparency. How do you approach mentoring junior engineers in an environment that heavily emphasizes self-direction and rapid product iteration?",
+            "answer_outline": "A strong answer should discuss balancing hands-on guidance with empowering autonomy, setting clear expectations, doing effective code reviews, and helping junior engineers navigate ambiguity.",
+            "difficulty": 2
+          },
+          {
+            "id": "q14",
+            "category": "company-fit",
+            "requirement_ids": [
+              "r3"
+            ],
+            "prompt": "Can you share a specific example of how you helped a junior engineer level up their technical skills or architectural decision-making, particularly in a backend or product-focused engineering context?",
+            "answer_outline": "A strong answer outlines a specific situation, the junior engineer's growth area, the mentoring strategy used (e.g., pairing, design doc reviews), and the measurable positive outcome.",
+            "difficulty": 3
+          }
+        ],
+        "flashcards": [
+          {
+            "id": "f1",
+            "front": "Explain how the Node.js single-threaded event loop handles heavy CPU-bound tasks without blocking the main thread, and describe how you would offload such work using worker threads.",
+            "back": "A strong answer explains that Node.js uses libuv and a thread pool for I/O, but CPU-heavy tasks block the event loop. To prevent this, candidates should discuss implementing worker_threads to execute JavaScript in parallel, passing data via MessageChannels, and managing thread pool overhead.",
+            "requirement_ids": [
+              "r1"
+            ]
+          },
+          {
+            "id": "f2",
+            "front": "How do you diagnose and resolve memory leaks in a high-throughput Node.js production application?",
+            "back": "A strong answer mentions taking heap snapshots using V8 profiling tools or Clinic.js, identifying retained objects that should have been garbage collected, and common culprits like global variables, unclosed event listeners, or growing caches.",
+            "requirement_ids": [
+              "r1"
+            ]
+          },
+          {
+            "id": "f3",
+            "front": "Design a complex MongoDB aggregation pipeline that performs a multi-stage join ($lookup), filters documents efficiently, and computes rolling metrics using $facet or $bucket, highlighting indexing considerations for optimal performance.",
+            "back": "A strong answer walks through structuring stages carefully—filtering early with $match to reduce the working set before $lookup, ensuring compound indexes support the query predicates, and explaining how explain() is used to verify execution plans.",
+            "requirement_ids": [
+              "r2"
+            ]
+          },
+          {
+            "id": "f4",
+            "front": "Explain the trade-offs between different MongoDB write concerns (w: 1, w: majority) and read concerns (local, available, linearizable), and how they impact consistency and latency in a replica set.",
+            "back": "A strong answer contrasts performance with data durability. 'w: majority' guarantees writes are committed to a majority of nodes before returning, protecting against rollbacks during failovers, while higher read concerns ensure data is acknowledged by the replica set, trading off response time.",
+            "requirement_ids": [
+              "r2"
+            ]
+          },
+          {
+            "id": "f5",
+            "front": "How would you configure Kubernetes Liveness, Readiness, and Startup probes for a Node.js application that has a slow startup phase due to database connection initialization and cache warming?",
+            "back": "A strong answer explains the purpose of each probe: Startup probes protect slow-starting containers by delaying liveness/readiness checks; Liveness probes restart dead or deadlocked processes; Readiness probes control traffic routing. They should provide a sample YAML snippet demonstrating appropriate initialDelaySeconds and periodSeconds.",
+            "requirement_ids": [
+              "r4"
+            ]
+          }
+        ],
+        "schedule": {
+          "days_available": 5,
+          "days": [
+            {
+              "day": 1,
+              "focus": "technical + company-fit + system-design",
+              "question_ids": [
+                "q2",
+                "q14",
+                "q11"
+              ],
+              "minutes": 120
+            },
+            {
+              "day": 2,
+              "focus": "technical + company-fit",
+              "question_ids": [
+                "q3",
+                "q1",
+                "q13"
+              ],
+              "minutes": 105
+            },
+            {
+              "day": 3,
+              "focus": "behavioural + technical + system-design",
+              "question_ids": [
+                "q7",
+                "q4",
+                "q12"
+              ],
+              "minutes": 120
+            },
+            {
+              "day": 4,
+              "focus": "system-design + behavioural + technical",
+              "question_ids": [
+                "q8",
+                "q6",
+                "q5"
+              ],
+              "minutes": 105
+            },
+            {
+              "day": 5,
+              "focus": "system-design",
+              "question_ids": [
+                "q10",
+                "q9"
+              ],
+              "minutes": 75
+            }
+          ]
+        },
+        "coverage": {
+          "uncovered_requirement_ids": [],
+          "passes": 1
+        },
+        "meta": {
+          "crawl_error": null,
+          "research_skipped": null,
+          "thin_description": false
+        }
+      },
+      "error": null
     },
     {
       "id": "case-02",
-      "status": "failed",
-      "kit": null,
-      "error": {
-        "code": "GENERATION_FAILED",
-        "message": "Question generation failed: Cannot read properties of undefined (reading 'requirements')"
-      }
-    },
-    {
-      "id": "case-03",
-      "status": "failed",
-      "kit": null,
-      "error": {
-        "code": "GENERATION_FAILED",
-        "message": "Question generation failed: Cannot read properties of undefined (reading 'requirements')"
-      }
+      "status": "ok",
+      "kit": {
+        "source": {
+          "company": "example",
+          "company_url": "https://example.com",
+          "role": "Software Engineer",
+          "location": "",
+          "jd_chars": 25,
+          "researched_at": "2026-09-25T09:55:00.216Z",
+          "pages_used": [
+            "https://example.com/"
+          ]
+        },
+        "company_brief": {
+          "summary": "Example DomainThis domain is for use in documentation examples without needing permission. Avoid use in operations.Learn more",
+          "what_they_do": "Example DomainThis domain is for use in documentation examples without needing permission. Avoid use in operations.Learn more",
+          "sources": [
+            "https://example.com/"
+          ]
+        },
+        "role": {
+          "title": "Software Engineer",
+          "seniority": "",
+          "responsibilities": [],
+          "requirements": []
+        },
+        "questions": [],
+        "flashcards": [],
+        "schedule": {
+          "days_available": 3,
+          "days": [
+            {
+              "day": 1,
+              "focus": "Review",
+              "question_ids": [],
+              "minutes": 0
+            },
+            {
+              "day": 2,
+              "focus": "Review",
+              "question_ids": [],
+              "minutes": 0
+            },
+            {
+              "day": 3,
+              "focus": "Review",
+              "question_ids": [],
+              "minutes": 0
+            }
+          ]
+        },
+        "coverage": {
+          "uncovered_requirement_ids": [],
+          "passes": 1
+        },
+        "meta": {
+          "crawl_error": null,
+          "research_skipped": null,
+          "thin_description": true
+        }
+      },
+      "error": null
     }
   ]
 }

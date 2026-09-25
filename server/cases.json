@@ -1,20 +1,14 @@
 [
   {
     "id": "case-01",
-    "jd": "Senior Backend Engineer\n\nWe are looking for a Senior Backend Engineer with 5+ years of experience in Node.js and REST API design. You will mentor junior engineers and collaborate with the frontend team.\n\nRequirements:\n- 5+ years experience with Node.js\n- Strong understanding of REST APIs\n- Experience mentoring junior engineers\n- Bonus points for AWS experience",
-    "company_url": "https://www.gitlab.com",
+    "jd": "Senior Backend Engineer\n\nWe are looking for a Senior Backend Engineer with 5+ years of experience with Node.js and strong MongoDB experience. You will mentor junior engineers. Bonus points for Kubernetes experience.",
+    "company_url": "https://posthog.com",
     "days": 5
   },
   {
     "id": "case-02",
-    "jd": "Frontend Dev needed. React skills required.",
-    "company_url": "https://www.posthog.com",
+    "jd": "Software Engineer needed.",
+    "company_url": "https://example.com",
     "days": 3
-  },
-  {
-    "id": "case-03",
-    "jd": "Full Stack Engineer\n\nWe need someone who knows JavaScript and databases. 3+ years experience required.",
-    "company_url": "https://invalid-domain-xyz123456.com",
-    "days": 7
   }
 ]
