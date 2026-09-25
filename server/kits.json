@@ -1,0 +1,33 @@
+{
+  "version": "1.0",
+  "generated_at": "2026-09-25T08:48:21.485Z",
+  "kits": [
+    {
+      "id": "case-01",
+      "status": "failed",
+      "kit": null,
+      "error": {
+        "code": "GENERATION_FAILED",
+        "message": "Question generation failed: Cannot read properties of undefined (reading 'requirements')"
+      }
+    },
+    {
+      "id": "case-02",
+      "status": "failed",
+      "kit": null,
+      "error": {
+        "code": "GENERATION_FAILED",
+        "message": "Question generation failed: Cannot read properties of undefined (reading 'requirements')"
+      }
+    },
+    {
+      "id": "case-03",
+      "status": "failed",
+      "kit": null,
+      "error": {
+        "code": "GENERATION_FAILED",
+        "message": "Question generation failed: Cannot read properties of undefined (reading 'requirements')"
+      }
+    }
+  ]
+}
