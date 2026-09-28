@@ -29,7 +29,7 @@ type Kit = {
   data?: any;
 };
 
-const API_BASE = "http://localhost:5000/api/kits";
+const API_BASE = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/kits`;
 
 export default function KitPage() {
   const params = useParams();

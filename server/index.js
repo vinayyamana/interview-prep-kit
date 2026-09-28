@@ -12,7 +12,7 @@ const app = express();
 app.set('trust proxy', 1);
 
 app.use(cors({
-  origin: "http://localhost:3000",   // exact deployed frontend URL, not "*"
+  origin: process.env.CLIENT_URL || "http://localhost:3000", // exact deployed frontend URL, not "*"
   credentials: true ,                   // allow cookies cross-origin
 }));
 app.use(express.json());
