@@ -6,9 +6,12 @@ const { closeCoverageGaps } = require("./generate/closeGaps");
 const { buildFlashcards } = require("./generate/flashcards");
 const { buildSchedule } = require("./schedule/buildSchedule");
 const { checkCoverage } = require("./coverage/checkCoverage");
+const { assertSafeUrl } = require("./security/validateUrl");
 
 // company_url may be unreachable; that is reported honestly, never fatal to the whole run.
 async function assembleKit({ jd, companyUrl, days }) {
+  await assertSafeUrl(companyUrl); // SSRF guard — throws if unsafe
+
   const role = await extractRequirements(jd);
 
   let crawl = { pages: [], hiringPages: [], skipped: [] };
@@ -25,9 +28,13 @@ async function assembleKit({ jd, companyUrl, days }) {
 
   const initial = await generateQuestions({ role, research });
   const closed = await closeCoverageGaps({ role, research, questions: initial.questions });
-  const flashcards = buildFlashcards(closed.questions);
-  const schedule = buildSchedule(closed.questions, role.requirements, days);
-  const coverage = checkCoverage(role.requirements, closed.questions);
+
+  const questionsWithFlag = closed.questions.map((q) => ({ ...q, edited: false }));
+
+  const flashcards = buildFlashcards(questionsWithFlag).map((f) => ({ ...f, edited: false }));
+
+  const schedule = buildSchedule(questionsWithFlag, role.requirements, days);
+  const coverage = checkCoverage(role.requirements, questionsWithFlag);
 
   const home = crawl.pages[0];
   const pagesUsed = crawl.pages.map((p) => p.url);
@@ -46,6 +53,7 @@ async function assembleKit({ jd, companyUrl, days }) {
       summary: home ? home.text.slice(0, 300) : "",
       what_they_do: home ? home.text.slice(0, 600) : "",
       sources: pagesUsed,
+      edited: false,
     },
     role: {
       title: role.title || "",
@@ -53,7 +61,7 @@ async function assembleKit({ jd, companyUrl, days }) {
       responsibilities: role.responsibilities || [],
       requirements: role.requirements,
     },
-    questions: closed.questions,
+    questions: questionsWithFlag,
     flashcards,
     schedule,
     coverage: { uncovered_requirement_ids: coverage.uncoveredRequirementIds, passes: closed.passes },

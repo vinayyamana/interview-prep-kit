@@ -10,5 +10,11 @@
     "jd": "Software Engineer needed.",
     "company_url": "https://example.com",
     "days": 3
+  },
+  {
+    "id": "case-03",
+    "jd": "Frontend Engineer with 3+ years React experience needed.",
+    "company_url": "https://this-site-does-not-exist-xyz123.com",
+    "days": 2
   }
 ]

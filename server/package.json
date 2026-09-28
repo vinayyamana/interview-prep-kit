@@ -1,28 +1,37 @@
 {
   "name": "server",
   "version": "1.0.0",
+  "type": "commonjs",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node index.js",
+    "start": "node index.js",
+    "test": "vitest run",
     "evaluate": "node scripts/evaluate.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "@google/genai": "^2.24.0",
+    "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
     "cheerio": "^1.2.0",
+    "connect-mongo": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^18.0.2",
     "express": "^4.22.3",
+    "express-session": "^1.19.0",
+    "ipaddr.js": "^2.5.0",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.10.1",
+    "mongoose": "^9.10.2",
     "zod": "^4.6.5"
   },
   "devDependencies": {
     "vitest": "^5.0.1"
+  },
+  "allowScripts": {
+    "bcrypt@6.0.0": true
   }
 }
