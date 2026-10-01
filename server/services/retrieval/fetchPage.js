@@ -1,6 +1,7 @@
 const cheerio = require("cheerio");
 const dns = require("dns").promises;
 const net = require("net");
+const { cleanText, dedupeSentences }  = require("./cleanText");
 
 const MAX_BYTES = 1_000_000;
 const TIMEOUT_MS = 10_000;
@@ -49,10 +50,10 @@ async function readLimited(res) {
   }
   return Buffer.concat(chunks).toString("utf8");
 }
-
 function parsePage(html, url) {
   const $ = cheerio.load(html);
   const links = [];
+  // Links mundu teesukovali, careers link nav/footer lo untundi
   $("a[href]").each((_, el) => {
     try {
       const abs = new URL($(el).attr("href"), url);
@@ -62,9 +63,16 @@ function parsePage(html, url) {
       }
     } catch {}
   });
-  $("script, style, noscript, svg, nav, footer").remove();
-  const text = $("body").text().replace(/\s+/g, " ").trim().slice(0, 20000);
-  return { url: url.href, title: $("title").text().trim(), text, links };
+
+  const title = $("title").text().trim();
+  // Cleaned text, kani empty aite pata method ki fallback
+  let text = dedupeSentences(cleanText(html));
+  if (!text) {
+    $("script, style, noscript, svg, nav, footer").remove();
+    text = $("body").text().replace(/\s+/g, " ").trim();
+  }
+  return { url: url.href, title, text: text.slice(0, 20000), links };
+
 }
 
 async function fetchPageOnce(rawUrl) {

@@ -3,14 +3,15 @@ const { crawlSite } = require("./retrieval/crawlSite");
 const { searchDiscussion, companyNameFromUrl, isLocalUrl } = require("./retrieval/searchDiscussion");
 const { generateQuestions, buildResearch } = require("./generate/questions");
 const { closeCoverageGaps } = require("./generate/closeGaps");
-const { buildFlashcards } = require("./generate/flashcards");
+const { generateFlashcards } = require("./generate/flashcards");
+const { generateCompanyBrief } = require("./generate/companyBrief");
 const { buildSchedule } = require("./schedule/buildSchedule");
 const { checkCoverage } = require("./coverage/checkCoverage");
 const { assertSafeUrl } = require("./security/validateUrl");
 
 // company_url may be unreachable; that is reported honestly, never fatal to the whole run.
 async function assembleKit({ jd, companyUrl, days }) {
-  await assertSafeUrl(companyUrl); // SSRF guard — throws if unsafe
+  await assertSafeUrl(companyUrl); // SSRF guard - throws if unsafe
 
   const role = await extractRequirements(jd);
 
@@ -31,13 +32,18 @@ async function assembleKit({ jd, companyUrl, days }) {
 
   const questionsWithFlag = closed.questions.map((q) => ({ ...q, edited: false }));
 
-  const flashcards = buildFlashcards(questionsWithFlag).map((f) => ({ ...f, edited: false }));
+  const flashcards = (await generateFlashcards(questionsWithFlag)).map((f) => ({ ...f, edited: false }));
 
   const schedule = buildSchedule(questionsWithFlag, role.requirements, days);
   const coverage = checkCoverage(role.requirements, questionsWithFlag);
 
-  const home = crawl.pages[0];
   const pagesUsed = crawl.pages.map((p) => p.url);
+
+  const brief = await generateCompanyBrief({
+    companyName,
+    crawl,
+    discussionResults: discussion.results,
+  });
 
   return {
     source: {
@@ -50,9 +56,9 @@ async function assembleKit({ jd, companyUrl, days }) {
       pages_used: pagesUsed,
     },
     company_brief: {
-      summary: home ? home.text.slice(0, 300) : "",
-      what_they_do: home ? home.text.slice(0, 600) : "",
-      sources: pagesUsed,
+      summary: brief.summary,
+      what_they_do: brief.what_they_do,
+      sources: brief.sources,
       edited: false,
     },
     role: {
