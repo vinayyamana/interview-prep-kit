@@ -735,11 +735,35 @@ export default function KitPage() {
           </button>
         </div>
         <ul className="space-y-2">
-          {data.schedule?.days?.map((d: any) => (
-            <li key={d.day}>
-              <strong>Day {d.day}:</strong> {d.focus} ({d.minutes} min)
-            </li>
-          ))}
+          {data.schedule?.days?.map((d: any) => {
+            const dayQuestions = ((d.question_ids || []) as string[])
+              .map((qid) => questions.find((q) => q.id === qid))
+              .filter(Boolean) as Question[];
+
+            return (
+              <li key={d.day} className="border rounded-md">
+                <details open={d.day === 1} className="p-3">
+                  <summary className="cursor-pointer font-medium">
+                    Day {d.day}: {d.focus} ({d.minutes} min)
+                  </summary>
+                  {dayQuestions.length === 0 ? (
+                    <p className={`text-sm ${mutedText} mt-2`}>No questions scheduled for this day.</p>
+                  ) : (
+                    <ol className="list-decimal pl-5 mt-2 space-y-2 text-sm">
+                      {dayQuestions.map((q) => (
+                        <li key={q.id} className={bodyText}>
+                          <span className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mr-2">
+                            {q.category}
+                          </span>
+                          {q.prompt}
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                </details>
+              </li>
+            );
+          })}
         </ul>
       </section>
     </div>
