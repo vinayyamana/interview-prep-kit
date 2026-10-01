@@ -16,7 +16,7 @@ Rules:
 - Ignore navigation menus, cookie banners, login prompts, event promotions and footer links.
 - If the text does not say enough about something, say plainly that it is not stated. Do not guess.
 - "summary": 2 to 3 plain sentences on who the company is.
-- "what_they_do": 3 to 5 plain sentences on what they build or sell and who for.
+- "what_they_do": 3 to 5 plain sentences on what they build or sell and who for. It must say different things from "summary".
 - Write in your own words. Never copy phrases from menus, banners or buttons.
 Return JSON with keys: summary, what_they_do.`;
 
@@ -41,6 +41,25 @@ function honestBrief(companyName, message) {
     what_they_do: `Not available for ${companyName || "this company"}. You can write your own notes here.`,
     sources: [],
   };
+}
+
+const norm = (s) => String(s || "").toLowerCase().replace(/\s+/g, " ").trim();
+
+// True when the model pasted scraped text instead of writing its own words.
+function copiesSource(text, chosen) {
+  const t = norm(text);
+  if (t.length < 80) return false;
+  const pages = chosen.map((p) => norm(p.text));
+  for (let i = 0; i + 60 <= t.length; i += 20) {
+    const piece = t.slice(i, i + 60);
+    if (pages.some((p) => p.includes(piece))) return true;
+  }
+  return false;
+}
+
+function looksValid(parsed, chosen) {
+  if (norm(parsed.summary) === norm(parsed.what_they_do)) return false;
+  return !copiesSource(parsed.summary, chosen) && !copiesSource(parsed.what_they_do, chosen);
 }
 
 async function generateCompanyBrief({ companyName, crawl, discussionResults }) {
@@ -76,6 +95,7 @@ ${snippets ? `\nPublic discussion snippets:\n${snippets}\n` : ""}`;
     try {
       const raw = await generateJson(prompt, { system: SYSTEM });
       const parsed = BriefSchema.parse(raw);
+      if (!looksValid(parsed, chosen)) continue; // copied text or duplicate, try again
       return { ...parsed, sources };
     } catch (err) {
       // retry once, then fall through to the honest fallback
