@@ -4,7 +4,14 @@ import { Confidence, Ratings, orderCards, coveredCount } from "../lib/practice";
 
 type Flashcard = { id: string; front: string; back: string; [key: string]: any };
 
-const LEVELS: [Confidence, string][] = [[1, "Hard"], [2, "OK"], [3, "Easy"]];
+const LEVELS: [Confidence, string, string][] = [
+  [1, "Hard", "border-red-400 text-red-600 dark:text-red-400"],
+  [2, "OK", "border-amber-400 text-amber-600 dark:text-amber-400"],
+  [3, "Easy", "border-green-400 text-green-600 dark:text-green-400"],
+];
+
+const navBtn =
+  "text-sm border rounded px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500";
 
 export default function PracticeMode({
   flashcards,
@@ -36,6 +43,8 @@ export default function PracticeMode({
   const card = deck[i];
   const covered = coveredCount(deck, ratings);
   const notCovered = deck.filter((c) => !ratings[c.id]);
+  const lastRating = ratings[card.id];
+  const lastLabel = LEVELS.find(([v]) => v === lastRating)?.[1];
 
   function go(step: number) {
     setFlipped(false);
@@ -54,9 +63,36 @@ export default function PracticeMode({
     setFlipped(false);
   }
 
+  // Shortcuts only work while focus is inside the practice box
+  function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const tag = (e.target as HTMLElement).tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+
+    if (e.key === " ") {
+      if (tag === "BUTTON") return; // buttons handle Space themselves
+      e.preventDefault();
+      setFlipped((f) => !f);
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault();
+      go(1);
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      go(-1);
+    } else if (flipped && (e.key === "1" || e.key === "2" || e.key === "3")) {
+      e.preventDefault();
+      rate(Number(e.key) as Confidence);
+    }
+  }
+
   return (
-    <div style={{ maxWidth: 480, margin: "0 auto", textAlign: "center" }}>
-      <div aria-live="polite" style={{ marginBottom: 12, fontSize: 14, color: "#666" }}>
+    <div
+      tabIndex={0}
+      onKeyDown={onKeyDown}
+      aria-label="Practice mode. Space flips the card, 1 2 3 rate it, left and right arrows move between cards."
+      className="max-w-lg mx-auto text-center rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 p-2"
+    >
+      <div aria-live="polite" className="mb-3 text-sm text-gray-600 dark:text-gray-300">
         Card {i + 1} / {deck.length} | Covered: {covered} / {deck.length}
       </div>
 
@@ -64,41 +100,55 @@ export default function PracticeMode({
         type="button"
         onClick={() => setFlipped((f) => !f)}
         aria-label={flipped ? "Show question" : "Reveal answer"}
-        style={{
-          width: "100%", border: "1px solid #ccc", borderRadius: 12, padding: 32,
-          minHeight: 160, fontSize: 18, cursor: "pointer", background: "transparent",
-          color: "inherit",
-        }}
+        className="w-full border border-gray-300 dark:border-gray-600 rounded-xl p-8 min-h-[160px] text-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
         {flipped ? card.back : card.front}
       </button>
-      <div style={{ fontSize: 12, color: "#999", marginTop: 6 }}>
-        (Tap card to flip, then rate)
+
+      <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+        {lastLabel ? `Last rating: ${lastLabel}` : "Not rated yet"}
+      </div>
+      <div className="text-xs text-gray-500 dark:text-gray-400">
+        Space flip, 1/2/3 rate, ← → move
       </div>
 
-      <div style={{ marginTop: 20, display: "flex", gap: 10, justifyContent: "center" }}>
-        <button onClick={() => go(-1)}>← Prev</button>
-        {LEVELS.map(([value, label]) => (
+      <div className="mt-4 flex flex-wrap gap-2 justify-center">
+        <button type="button" onClick={() => go(-1)} className={navBtn}>
+          ← Prev
+        </button>
+        {LEVELS.map(([value, label, color]) => (
           <button
             key={value}
+            type="button"
             disabled={!flipped}
             onClick={() => rate(value)}
             aria-label={`Rate card ${label}`}
+            className={`text-sm border rounded px-3 py-1.5 font-medium disabled:opacity-40 focus:outline-none focus:ring-2 focus:ring-blue-500 ${color}`}
           >
-            {label}
+            {value}. {label}
           </button>
         ))}
-        <button onClick={() => go(1)}>Next →</button>
+        <button type="button" onClick={() => go(1)} className={navBtn}>
+          Next →
+        </button>
       </div>
 
-      <div style={{ marginTop: 24, textAlign: "left" }}>
-        <strong>Not covered yet ({notCovered.length})</strong>
-        <ul>
-          {notCovered.map((c) => (
-            <li key={c.id}>{c.front}</li>
-          ))}
-        </ul>
-        <button onClick={startNextSession}>Start next session (least confident first)</button>
+      <div className="mt-6 text-left">
+        {notCovered.length === 0 ? (
+          <p className="text-sm text-green-600 dark:text-green-400">All cards covered</p>
+        ) : (
+          <>
+            <strong>Not covered yet ({notCovered.length})</strong>
+            <ul className="list-disc pl-5 mt-1 text-sm">
+              {notCovered.map((c) => (
+                <li key={c.id}>{c.front}</li>
+              ))}
+            </ul>
+          </>
+        )}
+        <button type="button" onClick={startNextSession} className={`${navBtn} mt-3`}>
+          Start next session (least confident first)
+        </button>
       </div>
     </div>
   );
