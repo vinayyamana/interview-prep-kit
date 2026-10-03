@@ -1,6 +1,18 @@
 const MINUTES_PER_QUESTION = { 1: 20, 2: 30, 3: 45 };
+const DEFAULT_MINUTES = 30;
+const REVIEW_FACTOR = 0.5; // repeat (review) questions take half the time
+const MIN_REVIEW_MINUTES = 15;
+const MAX_DAYS = 90;
 
 const idsOf = (q) => q.requirement_ids || [];
+const cost = (q) => MINUTES_PER_QUESTION[q.difficulty] || DEFAULT_MINUTES;
+
+function validateDays(daysAvailable) {
+  if (!Number.isInteger(daysAvailable) || daysAvailable < 1 || daysAvailable > MAX_DAYS) {
+    throw new RangeError(`days must be an integer between 1 and ${MAX_DAYS}`);
+  }
+  return daysAvailable;
+}
 
 function orderQuestions(questions, requirements) {
   const reqById = new Map(requirements.map((r) => [r.id, r]));
@@ -15,7 +27,7 @@ function orderQuestions(questions, requirements) {
   }
 
   const info = [...groups.values()].map((qs) => ({
-    qs: [...qs].sort((a, b) => b.difficulty - a.difficulty),
+    qs: [...qs].sort((a, b) => (b.difficulty || 0) - (a.difficulty || 0)),
     must: qs.some((q) => idsOf(q).some(isMust)),
     hardest: Math.max(...qs.map((q) => q.difficulty || 0)),
   }));
@@ -37,7 +49,13 @@ function uniqueLabel(label, used) {
   return n === 1 ? label : `${label} (part ${n})`;
 }
 
+function shorten(text, max = 60) {
+  return text.length > max ? `${text.slice(0, max - 1).trim()}…` : text;
+}
+
 function dayFocus(qs, requirements, isReview, used) {
+  if (qs.length === 0) return uniqueLabel("No questions available yet", used);
+
   const reqById = new Map(requirements.map((r) => [r.id, r]));
   const counts = new Map();
   for (const q of qs) {
@@ -52,28 +70,51 @@ function dayFocus(qs, requirements, isReview, used) {
       return pa - pb || b[1] - a[1];
     })
     .slice(0, 2)
-    .map(([id]) => reqById.get(id)?.topic || reqById.get(id)?.text)
+    .map(([id]) => {
+      const r = reqById.get(id);
+      return r?.topic || (r?.text ? shorten(r.text) : null);
+    })
     .filter(Boolean);
 
   const label = top.join(" + ") || "General practice";
   return uniqueLabel(isReview ? `Review: ${label}` : label, used);
 }
 
-function buildSchedule(questions, requirements, daysAvailable) {
-  const n = Math.max(1, Math.round(daysAvailable) || 1);
-  const ordered = orderQuestions(questions, requirements);
+// Split ordered questions into n consecutive days with similar total minutes.
+// Every day is guaranteed at least one question (requires ordered.length >= n).
+function chunkByMinutes(ordered, n) {
   const chunks = [];
+  let remaining = ordered.reduce((s, q) => s + cost(q), 0);
+  let current = [];
+  let acc = 0;
+
+  ordered.forEach((q, i) => {
+    current.push(q);
+    acc += cost(q);
+    const daysLeft = n - chunks.length - 1;
+    const questionsLeft = ordered.length - i - 1;
+    const target = remaining / (daysLeft + 1);
+    const mustClose = questionsLeft === daysLeft; // keep 1 question per remaining day
+    if (daysLeft > 0 && (acc >= target || mustClose)) {
+      chunks.push({ qs: current, review: false });
+      remaining -= acc;
+      current = [];
+      acc = 0;
+    }
+  });
+  chunks.push({ qs: current, review: false });
+  return chunks;
+}
+
+function buildSchedule(questions, requirements, daysAvailable) {
+  const n = validateDays(daysAvailable);
+  const ordered = orderQuestions(questions, requirements);
+  let chunks = [];
 
   if (ordered.length >= n) {
-    const base = Math.floor(ordered.length / n);
-    const extra = ordered.length % n; // earlier days get the extra question
-    let i = 0;
-    for (let d = 0; d < n; d++) {
-      const size = base + (d < extra ? 1 : 0);
-      chunks.push({ qs: ordered.slice(i, i + size), review: false });
-      i += size;
-    }
+    chunks = chunkByMinutes(ordered, n);
   } else {
+    // Fewer questions than days: one new question per day, then review days.
     ordered.forEach((q) => chunks.push({ qs: [q], review: false }));
     for (let d = ordered.length; d < n; d++) {
       const q = ordered.length ? ordered[(d - ordered.length) % ordered.length] : null;
@@ -82,14 +123,34 @@ function buildSchedule(questions, requirements, daysAvailable) {
   }
 
   const used = new Map();
-  const days = chunks.map(({ qs, review }, idx) => ({
-    day: idx + 1,
-    focus: dayFocus(qs, requirements, review, used),
-    question_ids: qs.map((q) => q.id),
-    minutes: qs.reduce((s, q) => s + (MINUTES_PER_QUESTION[q.difficulty] || 30), 0),
-  }));
+  const days = chunks.map(({ qs, review }, idx) => {
+    const raw = qs.reduce((s, q) => s + cost(q), 0);
+    const minutes = review && qs.length
+      ? Math.max(MIN_REVIEW_MINUTES, Math.round(raw * REVIEW_FACTOR))
+      : raw;
+    return {
+      day: idx + 1,
+      focus: dayFocus(qs, requirements, review, used),
+      question_ids: qs.map((q) => q.id),
+      minutes,
+    };
+  });
 
   return { days_available: n, days };
 }
 
-module.exports = { buildSchedule };
+// Must-have requirement ids that no scheduled question covers.
+function findUnscheduledMustIds(schedule, questions, requirements) {
+  const qById = new Map(questions.map((q) => [q.id, q]));
+  const covered = new Set();
+  for (const day of schedule.days) {
+    for (const id of day.question_ids) {
+      for (const rid of idsOf(qById.get(id) || {})) covered.add(rid);
+    }
+  }
+  return requirements
+    .filter((r) => r.priority === "must" && !covered.has(r.id))
+    .map((r) => r.id);
+}
+
+module.exports = { buildSchedule, findUnscheduledMustIds, MAX_DAYS };

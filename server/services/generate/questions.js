@@ -21,7 +21,8 @@ const CATEGORIES = {
   },
   behavioural: {
     kinds: ["behavioural"],
-    focus: "Behavioural questions answered with a past-experience story (STAR format).",
+    focus:
+      "Behavioural questions answered with a past-experience story (STAR format). For requirements marked [nice], start with a conditional such as \"If you have experience with X, ...\".",
   },
   "system-design": {
     kinds: ["technical"],
@@ -33,7 +34,7 @@ const CATEGORIES = {
     kinds: ["behavioural", "domain"],
     maxQuestions: 3,
     focus:
-      "Questions about why this company and role, and how the candidate's experience fits what the company does.",
+      "Questions about why this company and role, and how the candidate would approach the kind of work the company does and the way it works. Do NOT assume the candidate has any particular background. Ask how they would approach it, or use \"If you have...\" for optional experience.",
   },
 };
 
@@ -46,7 +47,9 @@ Rules:
 - Write only for the requested category.
 - Do not repeat or rephrase any question listed under "Already asked".
 - If the research describes the hiring process (for example a take-home or a system design round), make the questions reflect it. If no hiring process is described, do not invent one.
-- answer_outline is a short outline of a strong answer, written as a single string.
+- Never assume the candidate has a specific background (startup, remote work, a past employer, a particular tool). Do not write "your startup experience" or similar.
+- If a requirement is marked [nice], phrase the question conditionally: "If you have experience with X, how...". Otherwise ask how they would approach it.
+- answer_outline is a short outline of a strong answer, written as a single string. Write it as guidance on what to cover, not as a statement about the candidate.
 - difficulty is an integer from 1 (easy) to 3 (hard).
 Return JSON: {"questions":[{"requirement_ids":["r1"],"prompt":"...","answer_outline":"...","difficulty":2}]}`;
 

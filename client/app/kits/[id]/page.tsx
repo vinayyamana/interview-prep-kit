@@ -710,16 +710,43 @@ export default function KitPage() {
       {/* ---------- Coverage ---------- */}
       <section>
         <h2 className="text-lg font-semibold mb-2">Coverage</h2>
-        {uncovered.length === 0 ? (
-          <p className={bodyText}>
-            All requirements have at least one question ({data.coverage?.passes ?? 1} pass
-            {(data.coverage?.passes ?? 1) === 1 ? "" : "es"}).
-          </p>
-        ) : (
-          <p className="text-amber-700 dark:text-amber-300">
-            Not covered: {uncovered.join(", ")}
-          </p>
-        )}
+        {(() => {
+          const history: { pass: number; gaps: string[] }[] = data.coverage?.history || [];
+          const reqText = (rid: string) =>
+            data.role?.requirements?.find((r: any) => r.id === rid)?.text || rid;
+
+          if (!data.role?.requirements || data.role.requirements.length === 0) {
+            return (
+              <p className="text-amber-700 dark:text-amber-300">
+                No requirements could be extracted, so there is nothing to check.
+              </p>
+            );
+          }
+
+          return (
+            <div className="space-y-2">
+              {history.length <= 1 && uncovered.length === 0 ? (
+                <p className={bodyText}>No gaps found. Every requirement has at least one question.</p>
+              ) : (
+                <ul className="space-y-1 text-sm">
+                  {history.map((h) => (
+                    <li key={h.pass} className={bodyText}>
+                      <strong>Pass {h.pass}:</strong>{" "}
+                      {h.gaps.length === 0
+                        ? "all gaps closed"
+                        : `${h.gaps.length} gap(s) found (${h.gaps.map(reqText).join("; ")})`}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {uncovered.length > 0 && (
+                <p className="text-amber-700 dark:text-amber-300 text-sm">
+                  Still not covered: {uncovered.map(reqText).join("; ")}
+                </p>
+              )}
+            </div>
+          );
+        })()}
       </section>
 
       {/* ---------- Schedule ---------- */}

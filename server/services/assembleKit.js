@@ -11,20 +11,37 @@ const { assertSafeUrl } = require("./security/validateUrl");
 
 // company_url may be unreachable; that is reported honestly, never fatal to the whole run.
 async function assembleKit({ jd, companyUrl, days }) {
-  await assertSafeUrl(companyUrl); // SSRF guard - throws if unsafe
+  // SSRF guard: an unsafe or unresolvable URL must not stop the kit.
+  // We skip crawling, build the kit from the JD, and report it in meta.
+  let urlError = null;
+  try {
+    await assertSafeUrl(companyUrl);
+  } catch (err) {
+    urlError = err.message;
+  }
 
   const role = await extractRequirements(jd);
 
   let crawl = { pages: [], hiringPages: [], skipped: [] };
-  let crawlError = null;
-  try {
-    crawl = await crawlSite(companyUrl);
-  } catch (err) {
-    crawlError = err.message;
+  let crawlError = urlError;
+  if (!urlError) {
+    try {
+      crawl = await crawlSite(companyUrl);
+    } catch (err) {
+      crawlError = err.message;
+    }
   }
 
-  const companyName = companyNameFromUrl(companyUrl);
-  const discussion = await searchDiscussion(companyName, { skip: isLocalUrl(companyUrl) });
+  let companyName = "";
+  try {
+    companyName = companyNameFromUrl(companyUrl);
+  } catch {
+    companyName = "";
+  }
+
+  const discussion = await searchDiscussion(companyName, {
+    skip: Boolean(urlError) || isLocalUrl(companyUrl),
+  });
   const research = buildResearch(crawl, discussion.results);
 
   const initial = await generateQuestions({ role, research });
@@ -32,9 +49,13 @@ async function assembleKit({ jd, companyUrl, days }) {
 
   const questionsWithFlag = closed.questions.map((q) => ({ ...q, edited: false }));
 
-  const flashcards = (await generateFlashcards(questionsWithFlag)).map((f) => ({ ...f, edited: false }));
+  const flashcards = (await generateFlashcards(questionsWithFlag)).map((f) => ({
+    ...f,
+    edited: false,
+  }));
 
   const schedule = buildSchedule(questionsWithFlag, role.requirements, days);
+  // Final check on the kit as shipped: source of truth for uncovered ids.
   const coverage = checkCoverage(role.requirements, questionsWithFlag);
 
   const pagesUsed = crawl.pages.map((p) => p.url);
@@ -70,7 +91,11 @@ async function assembleKit({ jd, companyUrl, days }) {
     questions: questionsWithFlag,
     flashcards,
     schedule,
-    coverage: { uncovered_requirement_ids: coverage.uncoveredRequirementIds, passes: closed.passes },
+    coverage: {
+      uncovered_requirement_ids: coverage.uncoveredRequirementIds,
+      passes: closed.passes,
+      history: closed.history || [], // [{ pass: 1, gaps: ["r4"] }, { pass: 2, gaps: [] }]
+    },
     meta: {
       crawl_error: crawlError,
       research_skipped: discussion.note,

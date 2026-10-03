@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-09-27T07:41:01.620Z",
+  "generated_at": "2026-10-02T11:09:23Z",
   "kits": [
     {
       "id": "case-01",
@@ -12,63 +12,54 @@
           "role": "Backend Engineer",
           "location": "",
           "jd_chars": 215,
-          "researched_at": "2026-09-27T07:40:55.904Z",
+          "researched_at": "2026-10-02T11:09:21.334Z",
           "pages_used": [
             "https://posthog.com/",
             "https://posthog.com/careers",
             "https://posthog.com/handbook",
-            "https://posthog.com/handbook/company/culture",
-            "https://posthog.com/about",
-            "https://posthog.com/handbook/why-does-posthog-exist",
-            "https://posthog.com/handbook/people/spending-money",
-            "https://posthog.com/handbook/story"
+            "https://posthog.com/about"
           ]
         },
         "company_brief": {
-          "summary": "ProductsPricingDocsCommunityCompanyMoreGet started – free",
-          "what_they_do": "ProductsPricingDocsCommunityCompanyMoreGet started – free",
-          "sources": [
-            "https://posthog.com/",
-            "https://posthog.com/careers",
-            "https://posthog.com/handbook",
-            "https://posthog.com/handbook/company/culture",
-            "https://posthog.com/about",
-            "https://posthog.com/handbook/why-does-posthog-exist",
-            "https://posthog.com/handbook/people/spending-money",
-            "https://posthog.com/handbook/story"
-          ],
+          "summary": "No readable pages could be retrieved from posthog, so no company research is available for this kit.",
+          "what_they_do": "Not available for posthog. You can write your own notes here.",
+          "sources": [],
           "edited": false
         },
         "role": {
           "title": "Backend Engineer",
           "seniority": "Senior",
           "responsibilities": [
-            "mentor junior engineers"
+            "Mentor junior engineers"
           ],
           "requirements": [
             {
               "id": "r1",
               "text": "5+ years of experience with Node.js",
               "kind": "technical",
-              "priority": "must"
+              "priority": "must",
+              "topic": "Node.js experience"
             },
             {
               "id": "r2",
               "text": "strong MongoDB experience",
               "kind": "technical",
-              "priority": "must"
+              "priority": "must",
+              "topic": "MongoDB experience"
             },
             {
               "id": "r3",
-              "text": "mentor junior engineers",
+              "text": "Mentor junior engineers",
               "kind": "behavioural",
-              "priority": "must"
+              "priority": "must",
+              "topic": "Junior mentoring"
             },
             {
               "id": "r4",
               "text": "Kubernetes experience",
               "kind": "technical",
-              "priority": "nice"
+              "priority": "nice",
+              "topic": "Kubernetes knowledge"
             }
           ]
         },
@@ -79,9 +70,9 @@
             "requirement_ids": [
               "r1"
             ],
-            "prompt": "Explain how the Node.js single-threaded event loop handles heavy CPU-bound tasks without blocking the main thread, and describe how you would offload such work using worker threads.",
-            "answer_outline": "A strong answer explains that Node.js uses libuv and a thread pool for I/O, but CPU-heavy tasks block the event loop. To prevent this, candidates should discuss implementing worker_threads to execute JavaScript in parallel, passing data via MessageChannels, and managing thread pool overhead.",
-            "difficulty": 2,
+            "prompt": "How does the Node.js event loop handle phase transitions between poll and check phases, and how can improper use of setImmediate versus process.nextTick lead to event loop starvation or unexpected execution order?",
+            "answer_outline": "Explain the execution phases of the libuv event loop, specifically how process.nextTick queues are processed before the continuation of any phase and how setImmediate schedules callbacks in the check phase, discussing recursion risks and starvation.",
+            "difficulty": 3,
             "edited": false
           },
           {
@@ -90,9 +81,9 @@
             "requirement_ids": [
               "r1"
             ],
-            "prompt": "How do you diagnose and resolve memory leaks in a high-throughput Node.js production application?",
-            "answer_outline": "A strong answer mentions taking heap snapshots using V8 profiling tools or Clinic.js, identifying retained objects that should have been garbage collected, and common culprits like global variables, unclosed event listeners, or growing caches.",
-            "difficulty": 3,
+            "prompt": "In a large-scale Node.js application dealing with heavy synchronous CPU-bound data parsing, how would you prevent the main thread from blocking, and what are the trade-offs between using worker threads versus child processes?",
+            "answer_outline": "Discuss the single-threaded nature of Node.js, how CPU-bound tasks block the event loop, and compare worker threads (shared memory via ArrayBuffers, lower overhead) with child processes (IPC serialization, isolated memory space).",
+            "difficulty": 2,
             "edited": false
           },
           {
@@ -101,9 +92,9 @@
             "requirement_ids": [
               "r2"
             ],
-            "prompt": "Design a complex MongoDB aggregation pipeline that performs a multi-stage join ($lookup), filters documents efficiently, and computes rolling metrics using $facet or $bucket, highlighting indexing considerations for optimal performance.",
-            "answer_outline": "A strong answer walks through structuring stages carefully—filtering early with $match to reduce the working set before $lookup, ensuring compound indexes support the query predicates, and explaining how explain() is used to verify execution plans.",
-            "difficulty": 3,
+            "prompt": "How does MongoDB utilize B-tree indexes to execute queries, and how would you analyze a slow query using the explain() method to determine whether it is performing a collection scan or an index scan?",
+            "answer_outline": "Explain how MongoDB indexes store sorted keys referencing document locations, how to interpret executionStats from the explain method (examining docsExamined vs nReturned), and strategies for covering queries or refining compound index prefix rules.",
+            "difficulty": 2,
             "edited": false
           },
           {
@@ -112,9 +103,9 @@
             "requirement_ids": [
               "r2"
             ],
-            "prompt": "Explain the trade-offs between different MongoDB write concerns (w: 1, w: majority) and read concerns (local, available, linearizable), and how they impact consistency and latency in a replica set.",
-            "answer_outline": "A strong answer contrasts performance with data durability. 'w: majority' guarantees writes are committed to a majority of nodes before returning, protecting against rollbacks during failovers, while higher read concerns ensure data is acknowledged by the replica set, trading off response time.",
-            "difficulty": 2,
+            "prompt": "Explain the mechanics of the MongoDB WiredTiger storage engine's concurrency model, specifically how document-level locking and checkpointing work to maintain consistency under high write throughput.",
+            "answer_outline": "Describe WiredTiger's use of multi-version concurrency control (MVCC), ticket-based concurrency control, intent locks at the collection and database level, and how checkpoints periodically flush dirty cache pages to disk.",
+            "difficulty": 3,
             "edited": false
           },
           {
@@ -123,8 +114,8 @@
             "requirement_ids": [
               "r4"
             ],
-            "prompt": "How would you configure Kubernetes Liveness, Readiness, and Startup probes for a Node.js application that has a slow startup phase due to database connection initialization and cache warming?",
-            "answer_outline": "A strong answer explains the purpose of each probe: Startup probes protect slow-starting containers by delaying liveness/readiness checks; Liveness probes restart dead or deadlocked processes; Readiness probes control traffic routing. They should provide a sample YAML snippet demonstrating appropriate initialDelaySeconds and periodSeconds.",
+            "prompt": "If you have experience with Kubernetes, how would you configure liveness, readiness, and startup probes for a Node.js backend application to prevent traffic from hitting an instance during garbage collection pauses or initial connection warm-up?",
+            "answer_outline": "Explain the distinct roles of startup probes (blocking other probes until initialization completes), readiness probes (controlling service endpoint registration), and liveness probes (restarting dead containers), along with appropriate threshold configurations.",
             "difficulty": 2,
             "edited": false
           },
@@ -134,8 +125,8 @@
             "requirement_ids": [
               "r3"
             ],
-            "prompt": "Tell me about a time when you took a junior engineer under your wing to help them grow. What specific mentorship strategies did you use, and how did you measure their progress?",
-            "answer_outline": "Describe a specific junior engineer, the gaps or goals they had, the structured approach to mentoring (e.g., pairing, code reviews, delegating progressively harder tasks), and the positive outcome in their autonomy and technical skills.",
+            "prompt": "Tell me about a time when you had to mentor a junior engineer who was struggling to grasp asynchronous programming concepts in a backend codebase. What approach did you take, and how did you measure their progress?",
+            "answer_outline": "Describe identifying the knowledge gap, pairing up to work through practical asynchronous patterns, providing incremental challenges, and observing their increased autonomy and code quality over time.",
             "difficulty": 2,
             "edited": false
           },
@@ -145,8 +136,8 @@
             "requirement_ids": [
               "r3"
             ],
-            "prompt": "Describe a situation where a junior engineer struggled with a complex backend task or architectural concept. How did you guide them to the solution without simply doing the work for them?",
-            "answer_outline": "Explain the context of the struggle, how you used the Socratic method or guided questioning to help them understand the underlying principles, and the final resolution where they successfully completed the task with newfound confidence.",
+            "prompt": "Describe a situation where you noticed a recurring pattern of code quality issues among junior engineers on your team. How did you handle mentoring the group as a whole while still providing individual support?",
+            "answer_outline": "Explain how the situation was assessed, the creation of educational resources or code review guidelines, facilitating knowledge-sharing sessions, and tracking improvements in team pull requests.",
             "difficulty": 3,
             "edited": false
           },
@@ -154,10 +145,11 @@
             "id": "q8",
             "category": "system-design",
             "requirement_ids": [
-              "r1"
+              "r1",
+              "r2"
             ],
-            "prompt": "Design a distributed job processing and event-driven architecture using Node.js that handles high-throughput telemetry ingestion. Discuss how you manage event loops, memory limits, and asynchronous worker pools under heavy load.",
-            "answer_outline": "A strong answer should discuss using worker threads or clustering in Node.js, implementing backpressure for streams, using Redis or a similar broker for queuing, and monitoring event loop lag to prevent bottlenecks.",
+            "prompt": "Design a real-time event ingestion pipeline capable of handling tens of thousands of writes per second using Node.js and MongoDB. Walk through the architecture, data flow, handling of backpressure in Node.js, and how you would design the MongoDB schema and indexing strategy to sustain high write volumes without exhausting connection pools.",
+            "answer_outline": "Discuss Node.js stream processing and backpressure handling, clustering or worker threads for CPU/IO balancing, MongoDB write concerns, sharding strategies, collection design, and memory/connection pool management.",
             "difficulty": 3,
             "edited": false
           },
@@ -165,74 +157,32 @@
             "id": "q9",
             "category": "system-design",
             "requirement_ids": [
-              "r1"
+              "r1",
+              "r2",
+              "r4"
             ],
-            "prompt": "Architect a scalable Node.js microservices backend that communicates via gRPC and message brokers. Explain how you would handle graceful shutdowns, error handling, and distributed tracing across services.",
-            "answer_outline": "The candidate should detail how to intercept unhandled rejections, gracefully drain HTTP/gRPC servers before exit, propagate correlation IDs for tracing, and manage connection pools efficiently.",
-            "difficulty": 2,
+            "prompt": "If you have experience with Kubernetes, how would you architect a horizontally scalable Node.js microservices ecosystem backed by a shared MongoDB cluster? Address cluster orchestration, handling rolling deployments without dropping active client connections, and managing database connection lifecycle across pod scaling events.",
+            "answer_outline": "Cover Kubernetes Horizontal Pod Autoscalers, graceful shutdown handling in Node.js to finish in-flight requests, readiness/liveness probes, and MongoDB connection retry and pooling logic in a containerized environment.",
+            "difficulty": 3,
             "edited": false
           },
           {
             "id": "q10",
-            "category": "system-design",
-            "requirement_ids": [
-              "r2"
-            ],
-            "prompt": "Design a high-volume data storage and retrieval system using MongoDB to handle multi-tenant time-series and event capture data. Address schema design, sharding strategies, and maintaining query performance as data scales to billions of documents.",
-            "answer_outline": "Discuss careful selection of shard keys, time-series collections or bucket patterns, efficient indexing strategies, avoiding large document growth, and handling aggregation pipelines efficiently.",
-            "difficulty": 3,
-            "edited": false
-          },
-          {
-            "id": "q11",
-            "category": "system-design",
-            "requirement_ids": [
-              "r2"
-            ],
-            "prompt": "How would you design a data tier in MongoDB to support heavy concurrent writes alongside complex analytical read queries? Discuss consistency models, replication lag, and read/write concerns.",
-            "answer_outline": "Explain the use of secondary reads with appropriate read preferences, optimizing indexes for both transactional updates and analytics, and tuning write concerns based on durability requirements.",
-            "difficulty": 2,
-            "edited": false
-          },
-          {
-            "id": "q12",
-            "category": "system-design",
-            "requirement_ids": [
-              "r4"
-            ],
-            "prompt": "Design a deployment and scaling strategy on Kubernetes for a stateful Node.js backend application connecting to MongoDB. Discuss resource quotas, horizontal pod autoscaling based on custom metrics, and managing configuration securely.",
-            "answer_outline": "Cover the use of Deployments/StatefulSets, configuring liveness and readiness probes, setting up HPA using CPU or custom Prometheus metrics, utilizing Kubernetes Secrets/ConfigMaps, and managing persistent volume claims if necessary.",
-            "difficulty": 3,
-            "edited": false
-          },
-          {
-            "id": "q13",
             "category": "company-fit",
             "requirement_ids": [
               "r3"
             ],
-            "prompt": "At PostHog, engineers operate with a high degree of autonomy and transparency. How do you approach mentoring junior engineers in an environment that heavily emphasizes self-direction and rapid product iteration?",
-            "answer_outline": "A strong answer should discuss balancing hands-on guidance with empowering autonomy, setting clear expectations, doing effective code reviews, and helping junior engineers navigate ambiguity.",
+            "prompt": "How would you approach mentoring junior engineers to help them transition from writing basic feature code to designing maintainable, production-ready backend systems?",
+            "answer_outline": "Discuss setting up structured feedback loops, code review best practices, pairing sessions, and progressively granting ownership over small design decisions.",
             "difficulty": 2,
-            "edited": false
-          },
-          {
-            "id": "q14",
-            "category": "company-fit",
-            "requirement_ids": [
-              "r3"
-            ],
-            "prompt": "Can you share a specific example of how you helped a junior engineer level up their technical skills or architectural decision-making, particularly in a backend or product-focused engineering context?",
-            "answer_outline": "A strong answer outlines a specific situation, the junior engineer's growth area, the mentoring strategy used (e.g., pairing, design doc reviews), and the measurable positive outcome.",
-            "difficulty": 3,
             "edited": false
           }
         ],
         "flashcards": [
           {
             "id": "f1",
-            "front": "Explain how the Node.js single-threaded event loop handles heavy CPU-bound tasks without blocking the main thread, and describe how you would offload such work using worker threads.",
-            "back": "A strong answer explains that Node.js uses libuv and a thread pool for I/O, but CPU-heavy tasks block the event loop. To prevent this, candidates should discuss implementing worker_threads to execute JavaScript in parallel, passing data via MessageChannels, and managing thread pool overhead.",
+            "front": "When are process.nextTick callbacks executed relative to event loop phases?",
+            "back": "Callbacks in the process.nextTick queue are executed immediately after the current operation completes, before the event loop continues to the next phase.",
             "requirement_ids": [
               "r1"
             ],
@@ -240,37 +190,85 @@
           },
           {
             "id": "f2",
-            "front": "How do you diagnose and resolve memory leaks in a high-throughput Node.js production application?",
-            "back": "A strong answer mentions taking heap snapshots using V8 profiling tools or Clinic.js, identifying retained objects that should have been garbage collected, and common culprits like global variables, unclosed event listeners, or growing caches.",
+            "front": "How do you determine if a MongoDB query performed a full collection scan?",
+            "back": "Check the explain() output; if docsExamined significantly exceeds nReturned, the query performed a collection scan rather than using an index effectively.",
+            "requirement_ids": [
+              "r2"
+            ],
+            "edited": false
+          },
+          {
+            "id": "f3",
+            "front": "What is the purpose of a Kubernetes startup probe?",
+            "back": "A startup probe delays liveness and readiness probes until the application has successfully finished its initial startup sequence.",
+            "requirement_ids": [
+              "r4"
+            ],
+            "edited": false
+          },
+          {
+            "id": "f4",
+            "front": "What is the primary memory difference between Worker Threads and Child Processes in Node.js?",
+            "back": "Worker Threads share memory using ArrayBuffers, whereas Child Processes have isolated memory spaces and communicate via IPC serialization.",
             "requirement_ids": [
               "r1"
             ],
             "edited": false
           },
           {
-            "id": "f3",
-            "front": "Design a complex MongoDB aggregation pipeline that performs a multi-stage join ($lookup), filters documents efficiently, and computes rolling metrics using $facet or $bucket, highlighting indexing considerations for optimal performance.",
-            "back": "A strong answer walks through structuring stages carefully—filtering early with $match to reduce the working set before $lookup, ensuring compound indexes support the query predicates, and explaining how explain() is used to verify execution plans.",
-            "requirement_ids": [
-              "r2"
-            ],
-            "edited": false
-          },
-          {
-            "id": "f4",
-            "front": "Explain the trade-offs between different MongoDB write concerns (w: 1, w: majority) and read concerns (local, available, linearizable), and how they impact consistency and latency in a replica set.",
-            "back": "A strong answer contrasts performance with data durability. 'w: majority' guarantees writes are committed to a majority of nodes before returning, protecting against rollbacks during failovers, while higher read concerns ensure data is acknowledged by the replica set, trading off response time.",
-            "requirement_ids": [
-              "r2"
-            ],
-            "edited": false
-          },
-          {
             "id": "f5",
-            "front": "How would you configure Kubernetes Liveness, Readiness, and Startup probes for a Node.js application that has a slow startup phase due to database connection initialization and cache warming?",
-            "back": "A strong answer explains the purpose of each probe: Startup probes protect slow-starting containers by delaying liveness/readiness checks; Liveness probes restart dead or deadlocked processes; Readiness probes control traffic routing. They should provide a sample YAML snippet demonstrating appropriate initialDelaySeconds and periodSeconds.",
+            "front": "What concurrency model does the MongoDB WiredTiger storage engine use?",
+            "back": "WiredTiger uses Multi-Version Concurrency Control (MVCC) along with document-level locking and ticket-based concurrency control to handle high write concurrency.",
             "requirement_ids": [
+              "r2"
+            ],
+            "edited": false
+          },
+          {
+            "id": "f6",
+            "front": "How do Node.js streams handle data flow control?",
+            "back": "Node.js streams use backpressure, returning false from the write() method when the internal buffer exceeds the highWaterMark, signaling producers to pause.",
+            "requirement_ids": [
+              "r1",
+              "r2"
+            ],
+            "edited": false
+          },
+          {
+            "id": "f7",
+            "front": "How should a Node.js application handle incoming traffic during a Kubernetes rolling deployment?",
+            "back": "The app must implement a graceful shutdown by listening for SIGTERM signals, finishing in-flight requests, and closing database connections before exiting.",
+            "requirement_ids": [
+              "r1",
+              "r2",
               "r4"
+            ],
+            "edited": false
+          },
+          {
+            "id": "f8",
+            "front": "Mentoring async programming: how should you structure your mentorship approach and progress tracking?",
+            "back": "Explain how you identified the knowledge gap, used pair programming for practical patterns, and provided incremental challenges. Highlight how you measured progress through increased autonomy and improved code quality.",
+            "requirement_ids": [
+              "r3"
+            ],
+            "edited": false
+          },
+          {
+            "id": "f9",
+            "front": "Team-wide quality issues: how to balance group education with individual support?",
+            "back": "Describe how you assessed the recurring pattern, created educational resources or guidelines, and facilitated knowledge-sharing sessions. Mention how you tracked improvements in team pull requests.",
+            "requirement_ids": [
+              "r3"
+            ],
+            "edited": false
+          },
+          {
+            "id": "f10",
+            "front": "System design transition: how to mentor engineers toward maintainable backend architecture?",
+            "back": "Discuss setting up structured feedback loops, code review best practices, and pairing sessions. Explain how you progressively granted ownership over small design decisions.",
+            "requirement_ids": [
+              "r3"
             ],
             "edited": false
           }
@@ -280,63 +278,65 @@
           "days": [
             {
               "day": 1,
-              "focus": "technical + company-fit + system-design",
+              "focus": "Node.js experience",
               "question_ids": [
-                "q2",
-                "q14",
-                "q11"
+                "q1",
+                "q8"
               ],
-              "minutes": 120
+              "minutes": 90
             },
             {
               "day": 2,
-              "focus": "technical + company-fit",
+              "focus": "Node.js experience (part 2)",
               "question_ids": [
-                "q3",
-                "q1",
-                "q13"
+                "q9",
+                "q2"
               ],
-              "minutes": 105
+              "minutes": 75
             },
             {
               "day": 3,
-              "focus": "behavioural + technical + system-design",
+              "focus": "Junior mentoring",
               "question_ids": [
                 "q7",
-                "q4",
-                "q12"
+                "q6"
               ],
-              "minutes": 120
+              "minutes": 75
             },
             {
               "day": 4,
-              "focus": "system-design + behavioural + technical",
+              "focus": "Junior mentoring + MongoDB experience",
               "question_ids": [
-                "q8",
-                "q6",
-                "q5"
+                "q10",
+                "q4"
               ],
-              "minutes": 105
+              "minutes": 75
             },
             {
               "day": 5,
-              "focus": "system-design",
+              "focus": "MongoDB experience + Kubernetes knowledge",
               "question_ids": [
-                "q10",
-                "q9"
+                "q3",
+                "q5"
               ],
-              "minutes": 75
+              "minutes": 60
             }
           ]
         },
         "coverage": {
           "uncovered_requirement_ids": [],
-          "passes": 1
+          "passes": 1,
+          "history": [
+            {
+              "pass": 1,
+              "gaps": []
+            }
+          ]
         },
         "meta": {
           "crawl_error": null,
           "research_skipped": null,
-          "thin_description": false
+          "thin_description": true
         }
       },
       "error": null
@@ -351,17 +351,15 @@
           "role": "Software Engineer",
           "location": "",
           "jd_chars": 25,
-          "researched_at": "2026-09-27T07:40:57.921Z",
+          "researched_at": "2026-10-02T11:09:22.832Z",
           "pages_used": [
             "https://example.com/"
           ]
         },
         "company_brief": {
-          "summary": "Example DomainThis domain is for use in documentation examples without needing permission. Avoid use in operations.Learn more",
-          "what_they_do": "Example DomainThis domain is for use in documentation examples without needing permission. Avoid use in operations.Learn more",
-          "sources": [
-            "https://example.com/"
-          ],
+          "summary": "No readable pages could be retrieved from example, so no company research is available for this kit.",
+          "what_they_do": "Not available for example. You can write your own notes here.",
+          "sources": [],
           "edited": false
         },
         "role": {
@@ -377,19 +375,19 @@
           "days": [
             {
               "day": 1,
-              "focus": "Review",
+              "focus": "No questions available yet",
               "question_ids": [],
               "minutes": 0
             },
             {
               "day": 2,
-              "focus": "Review",
+              "focus": "No questions available yet (part 2)",
               "question_ids": [],
               "minutes": 0
             },
             {
               "day": 3,
-              "focus": "Review",
+              "focus": "No questions available yet (part 3)",
               "question_ids": [],
               "minutes": 0
             }
@@ -397,7 +395,13 @@
         },
         "coverage": {
           "uncovered_requirement_ids": [],
-          "passes": 1
+          "passes": 1,
+          "history": [
+            {
+              "pass": 1,
+              "gaps": []
+            }
+          ]
         },
         "meta": {
           "crawl_error": null,
@@ -417,12 +421,12 @@
           "role": "Frontend Engineer",
           "location": "",
           "jd_chars": 56,
-          "researched_at": "2026-09-27T07:41:01.620Z",
+          "researched_at": "2026-10-02T11:09:23.007Z",
           "pages_used": []
         },
         "company_brief": {
-          "summary": "",
-          "what_they_do": "",
+          "summary": "No readable pages could be retrieved from this-site-does-not-exist-xyz123, so no company research is available for this kit.",
+          "what_they_do": "Not available for this-site-does-not-exist-xyz123. You can write your own notes here.",
           "sources": [],
           "edited": false
         },
@@ -435,7 +439,8 @@
               "id": "r1",
               "text": "3+ years React experience",
               "kind": "technical",
-              "priority": "must"
+              "priority": "must",
+              "topic": "React experience"
             }
           ]
         },
@@ -446,8 +451,8 @@
             "requirement_ids": [
               "r1"
             ],
-            "prompt": "Explain how React's concurrent rendering features work under the hood, and describe a scenario where you would use `useTransition` or `useDeferredValue` to solve a specific performance bottleneck.",
-            "answer_outline": "A strong answer explains how React can interrupt rendering to keep the main thread responsive, differentiates between urgent and non-urgent updates, and provides a clear example of keeping UI input responsive while filtering a large list.",
+            "prompt": "How does React's reconciliation algorithm (Fiber) determine when to reuse an existing DOM node versus unmounting and recreating it, and what are the performance implications of key selection during this process?",
+            "answer_outline": "Explain the diffing heuristics (element type changes, child key matching), how keys preserve component state and DOM identity, and the performance penalties of using unstable keys like array indices.",
             "difficulty": 3,
             "edited": false
           },
@@ -457,17 +462,17 @@
             "requirement_ids": [
               "r1"
             ],
-            "prompt": "Describe how you would architect a custom hook in React to manage complex form state with asynchronous validation, debouncing, and performance optimization to prevent unnecessary re-renders of child components.",
-            "answer_outline": "A strong answer details the use of `useReducer` or `useState`, implementation of `useCallback` and `useMemo`, how to handle cancellation of async requests, and structural patterns to isolate re-renders.",
-            "difficulty": 2,
+            "prompt": "Explain how React 18's concurrent rendering features, such as startTransition and useDeferredValue, change the way state updates are prioritized and processed in the component tree.",
+            "answer_outline": "Discuss how concurrent mode allows React to interrupt rendering for high-priority updates like user input, the difference between urgent and non-urgent updates, and how it prevents UI blocking.",
+            "difficulty": 3,
             "edited": false
           }
         ],
         "flashcards": [
           {
             "id": "f1",
-            "front": "Explain how React's concurrent rendering features work under the hood, and describe a scenario where you would use `useTransition` or `useDeferredValue` to solve a specific performance bottleneck.",
-            "back": "A strong answer explains how React can interrupt rendering to keep the main thread responsive, differentiates between urgent and non-urgent updates, and provides a clear example of keeping UI input responsive while filtering a large list.",
+            "front": "How does React reconcile elements of the same type with keys?",
+            "back": "React matches child elements using their keys to preserve component state and DOM identity across renders, avoiding unnecessary unmounting and recreation.",
             "requirement_ids": [
               "r1"
             ],
@@ -475,8 +480,8 @@
           },
           {
             "id": "f2",
-            "front": "Describe how you would architect a custom hook in React to manage complex form state with asynchronous validation, debouncing, and performance optimization to prevent unnecessary re-renders of child components.",
-            "back": "A strong answer details the use of `useReducer` or `useState`, implementation of `useCallback` and `useMemo`, how to handle cancellation of async requests, and structural patterns to isolate re-renders.",
+            "front": "What is the primary benefit of React 18's startTransition?",
+            "back": "It marks state updates as non-urgent, allowing React to interrupt rendering to keep high-priority user interactions responsive and prevent UI blocking.",
             "requirement_ids": [
               "r1"
             ],
@@ -488,7 +493,7 @@
           "days": [
             {
               "day": 1,
-              "focus": "technical",
+              "focus": "React experience",
               "question_ids": [
                 "q1"
               ],
@@ -496,21 +501,27 @@
             },
             {
               "day": 2,
-              "focus": "technical",
+              "focus": "React experience (part 2)",
               "question_ids": [
                 "q2"
               ],
-              "minutes": 30
+              "minutes": 45
             }
           ]
         },
         "coverage": {
           "uncovered_requirement_ids": [],
-          "passes": 1
+          "passes": 1,
+          "history": [
+            {
+              "pass": 1,
+              "gaps": []
+            }
+          ]
         },
         "meta": {
-          "crawl_error": "COMPANY_UNREACHABLE: fetch failed",
-          "research_skipped": "NO_PUBLIC_DISCUSSION_FOUND",
+          "crawl_error": "Could not resolve hostname",
+          "research_skipped": "SEARCH_SKIPPED_LOCAL_SITE",
           "thin_description": true
         }
       },

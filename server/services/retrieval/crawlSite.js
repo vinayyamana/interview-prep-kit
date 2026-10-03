@@ -2,7 +2,8 @@ const { fetchPage } = require("./fetchPage");
 
 const MAX_PAGES = 8;
 const DELAY_MS = 500;
-const UA = "InterviewPrepKitBot";
+const FIRST_PAGE_RETRIES = 3;
+const UA = "Mozilla/5.0 (compatible; InterviewPrepKitBot/1.0)";
 
 // [pattern, points]: higher score = more likely to describe hiring
 const KEYWORDS = [
@@ -15,6 +16,11 @@ const KEYWORDS = [
 const NEGATIVE = /login|signin|sign-in|signup|cart|privacy|terms|cookie|\.(pdf|zip|png|jpe?g|gif|svg|css|js)(\?|$)/i;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function describeError(err) {
+  const cause = err.cause?.code || err.cause?.message || "";
+  return cause ? `${err.message} (${cause})` : err.message;
+}
 
 function scoreLink(link) {
   if (NEGATIVE.test(link.url)) return -1;
@@ -38,27 +44,65 @@ async function loadRobots(origin) {
       const [k, ...rest] = line.split(":");
       const key = k.toLowerCase();
       const val = rest.join(":").trim();
-      if (key === "user-agent") applies = val === "*" || UA.toLowerCase().startsWith(val.toLowerCase());
+      if (key === "user-agent") applies = val === "*" || UA.toLowerCase().includes(val.toLowerCase());
       else if (key === "disallow" && applies && val) disallow.push(val);
     }
     return disallow;
   } catch {
-    return [];
+    return []; // robots.txt unreachable -> treat as no restrictions
   }
 }
 
+// Retry the start page with backoff: one slow response should not fail the case.
+async function fetchFirstPage(url) {
+  let lastErr;
+  for (let attempt = 1; attempt <= FIRST_PAGE_RETRIES; attempt++) {
+    try {
+      return await fetchPage(url);
+    } catch (err) {
+      lastErr = err;
+      if (attempt < FIRST_PAGE_RETRIES) await sleep(1000 * 2 ** (attempt - 1));
+    }
+  }
+  throw lastErr;
+}
+
+// An unreachable company is a research gap, not a fatal error:
+// the caller still builds a kit from the job description alone.
+function unreachableResult(url, reason) {
+  return {
+    pages: [],
+    hiringPages: [],
+    skipped: [{ url: String(url), reason }],
+    unreachable: true,
+  };
+}
+
 async function crawlSite(startUrl) {
-  const start = new URL(startUrl);
+  let start;
+  try {
+    start = new URL(startUrl);
+  } catch {
+    return unreachableResult(startUrl, "INVALID_URL");
+  }
+
   const disallow = await loadRobots(start.origin);
   const pages = [];
   const skipped = [];
   const seen = new Set([start.href]);
 
+  if (disallow.some((p) => start.pathname.startsWith(p))) {
+    return unreachableResult(start.href, "ROBOTS_DISALLOWED");
+  }
+
   let first;
   try {
-    first = await fetchPage(start.href);
+    first = await fetchFirstPage(start.href);
   } catch (err) {
-    throw new Error(`COMPANY_UNREACHABLE: ${err.message}`);
+    return unreachableResult(
+      start.href,
+      `${describeError(err)} (after ${FIRST_PAGE_RETRIES} tries)`
+    );
   }
   pages.push(first);
 
@@ -90,7 +134,7 @@ async function crawlSite(startUrl) {
       pages.push(page);
       enqueue(page);
     } catch (err) {
-      skipped.push({ url, reason: err.message });
+      skipped.push({ url, reason: describeError(err) });
     }
   }
 
@@ -98,7 +142,7 @@ async function crawlSite(startUrl) {
     .filter((p) => /interview|hiring|careers?|jobs?|join/i.test(`${new URL(p.url).pathname} ${p.title}`))
     .map((p) => p.url);
 
-  return { pages, hiringPages, skipped };
+  return { pages, hiringPages, skipped, unreachable: false };
 }
 
 module.exports = { crawlSite, scoreLink };

@@ -2,13 +2,13 @@ require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 
-// ⚠️ Adjust this import to match your actual pipeline/assembler file
 const { assembleKit } = require('../services/assembleKit');
 
 function getArg(flagName) {
   const idx = process.argv.indexOf(flagName);
   if (idx === -1 || !process.argv[idx + 1]) {
     console.error(`Missing required argument: ${flagName}`);
+    console.error('Usage: npm run evaluate -- --input <cases.json> --output <kits.json>');
     process.exit(1);
   }
   return process.argv[idx + 1];
@@ -30,7 +30,7 @@ function loadCases(filePath) {
   try {
     cases = JSON.parse(raw);
   } catch (err) {
-    console.error(`Input file is not valid JSON:`, err.message);
+    console.error('Input file is not valid JSON:', err.message);
     process.exit(1);
   }
 
@@ -42,16 +42,37 @@ function loadCases(filePath) {
   return cases;
 }
 
+function validateCase(c) {
+  if (!c || typeof c !== 'object') return 'case must be an object';
+  if (typeof c.id !== 'string' || !c.id) return 'id must be a non-empty string';
+  if (typeof c.jd !== 'string' || !c.jd.trim()) return 'jd must be a non-empty string';
+  if (typeof c.company_url !== 'string' || !c.company_url.trim()) return 'company_url must be a non-empty string';
+  if (!Number.isInteger(c.days) || c.days < 1) return 'days must be an integer >= 1';
+  return null;
+}
+
+// Map internal errors to stable error codes (Appendix B)
+function toErrorInfo(err) {
+  const msg = String((err && err.message) || err);
+  const code = err && err.code;
+
+  if (
+    code === 'COMPANY_UNREACHABLE' ||
+    /COMPANY_UNREACHABLE|ENOTFOUND|resolve hostname|fetch failed|unreachable/i.test(msg)
+  ) {
+    return { code: 'COMPANY_UNREACHABLE', message: 'Company site unreachable after 3 retries.' };
+  }
+  return { code: code || 'UNKNOWN_ERROR', message: msg };
+}
+
 async function runCase(c) {
-  if (!c.id || !c.jd || !c.company_url || !c.days) {
+  const problem = validateCase(c);
+  if (problem) {
     return {
-      id: c.id || 'unknown',
+      id: (c && c.id) || 'unknown',
       status: 'failed',
       kit: null,
-      error: {
-        code: 'INVALID_CASE',
-        message: 'Case is missing one of: id, jd, company_url, days',
-      },
+      error: { code: 'INVALID_CASE', message: problem },
     };
   }
 
@@ -61,50 +82,39 @@ async function runCase(c) {
       companyUrl: c.company_url,
       days: c.days,
     });
-
-    return {
-      id: c.id,
-      status: 'ok',
-      kit,
-      error: null,
-    };
+    return { id: c.id, status: 'ok', kit, error: null };
   } catch (err) {
     console.error(`Case ${c.id} failed:`, err.message);
-    return {
-      id: c.id,
-      status: 'failed',
-      kit: null,
-      error: {
-        code: err.code || 'UNKNOWN_ERROR',
-        message: err.message || String(err),
-      },
-    };
+    return { id: c.id, status: 'failed', kit: null, error: toErrorInfo(err) };
   }
+}
+
+function writeOutput(kits) {
+  const output = {
+    version: '1.0',
+    generated_at: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
+    kits,
+  };
+  fs.writeFileSync(path.resolve(outputPath), JSON.stringify(output, null, 2));
 }
 
 async function main() {
   const cases = loadCases(inputPath);
   const kits = [];
+  const started = Date.now();
 
   console.log(`Running ${cases.length} case(s)...`);
 
   for (const c of cases) {
-    console.log(`→ Processing case: ${c.id}`);
-    const result = await runCase(c);
-    kits.push(result);
+    const id = (c && c.id) || 'unknown';
+    console.log(`→ Processing case: ${id}`);
+    kits.push(await runCase(c));
+    writeOutput(kits); // save after every case so partial results survive a crash
   }
 
-  const output = {
-    version: '1.0',
-    generated_at: new Date().toISOString(),
-    kits,
-  };
-
-  fs.writeFileSync(path.resolve(outputPath), JSON.stringify(output, null, 2));
-
   const okCount = kits.filter((k) => k.status === 'ok').length;
-  const failCount = kits.length - okCount;
-  console.log(`Done. ${okCount} ok, ${failCount} failed. Output written to ${outputPath}`);
+  const secs = Math.round((Date.now() - started) / 1000);
+  console.log(`Done. ${okCount} ok, ${kits.length - okCount} failed in ${secs}s. Output written to ${outputPath}`);
 }
 
 main().catch((err) => {
