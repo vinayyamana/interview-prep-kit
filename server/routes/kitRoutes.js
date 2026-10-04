@@ -20,6 +20,9 @@ const MIN_DAYS = 1;
 const MAX_DAYS = 60;
 const MAX_JD_CHARS = 50000;
 
+// Two items with word-overlap at or above this are treated as the same topic.
+const DUPLICATE_THRESHOLD = 0.7;
+
 /* ---------- helpers ---------- */
 
 // Express 4 does not catch rejected promises, so wrap every async handler.
@@ -70,6 +73,50 @@ function nextId(prefix, used) {
   used.add(id);
   return id;
 }
+
+/* ---------- duplicate detection (deterministic, no model involved) ---------- */
+
+const STOP_WORDS = new Set([
+  "a", "an", "the", "and", "or", "of", "to", "in", "on", "for", "with", "how",
+  "what", "is", "are", "do", "does", "you", "your", "would", "can", "between",
+  "that", "this", "it", "at", "by", "as", "be", "have", "if", "when",
+]);
+
+function tokens(text) {
+  return new Set(
+    String(text || "")
+      .toLowerCase()
+      .replace(/^my edit\s*:/, "") // the demo prefix should not affect matching
+      .replace(/[^a-z0-9\s]/g, " ")
+      .split(/\s+/)
+      .filter((w) => w.length > 2 && !STOP_WORDS.has(w))
+  );
+}
+
+function similarity(a, b) {
+  const ta = tokens(a);
+  const tb = tokens(b);
+  if (ta.size === 0 || tb.size === 0) return 0;
+  let shared = 0;
+  for (const w of ta) if (tb.has(w)) shared++;
+  // overlap coefficient: a reworded prompt that keeps the same outline still counts as a repeat
+  return shared / Math.min(ta.size, tb.size);
+}
+
+// Drops generated items that repeat a kept item OR an earlier generated item.
+// textOf() decides what is compared (prompt + answer outline, so a reworded edit is still caught).
+function dropDuplicates(generated, kept, textOf) {
+  const accepted = [];
+  for (const g of generated) {
+    const text = textOf(g);
+    const repeatsKept = kept.some((k) => similarity(textOf(k), text) >= DUPLICATE_THRESHOLD);
+    const repeatsAccepted = accepted.some((a) => similarity(textOf(a), text) >= DUPLICATE_THRESHOLD);
+    if (!repeatsKept && !repeatsAccepted) accepted.push(g);
+  }
+  return accepted;
+}
+
+/* ---------- url helpers ---------- */
 
 function isLocalUrl(url) {
   try {
@@ -228,6 +275,9 @@ router.post(
       edited: true,
     };
     kit.data.questions.push(newQuestion);
+
+    // so the new question shows up in the schedule too
+    rebuildSchedule(kit.data);
 
     kit.markModified("data");
     await kit.save();
@@ -464,9 +514,20 @@ router.post(
       const discussion = await searchDiscussion(companyName, { skip: isLocalUrl(companyUrl) });
       const research = buildResearch(crawl, discussion?.results || []);
 
+      // Pinned (edited) prompts in scope. Passed to the generator as a hint so it
+      // avoids those topics; the real guarantee is dropDuplicates() below.
+      const pinnedPrompts = (snapshot.questions || [])
+        .filter((q) => q.edited && (!category || q.category === category))
+        .map((q) => q.prompt);
+
       let generated;
       if (section === "questions") {
-        const out = await generateQuestions({ role: snapshot.role, research });
+        const out = await generateQuestions({
+          role: snapshot.role,
+          research,
+          avoidPrompts: pinnedPrompts,
+          categories: category ? [category] : undefined,
+        });
         generated = (out.questions || []).filter((q) => !category || q.category === category);
       } else {
         generated = (await generateFlashcards(snapshot.questions || [])) || [];
@@ -479,14 +540,29 @@ router.post(
 
       // merge against the LATEST saved data so edits made meanwhile survive
       const prefix = section === "questions" ? "q" : "f";
+      const textOf =
+        section === "questions"
+          ? (i) => `${i.prompt || ""} ${i.answer_outline || ""}`
+          : (i) => `${i.front || ""} ${i.back || ""}`;
+
       const result = await commit(req, (d) => {
         const items = d[section] || [];
         const inScope = (i) => (section === "questions" && category ? i.category === category : true);
 
         // keep: everything out of scope + everything the user edited (original order kept)
         const kept = items.filter((i) => !inScope(i) || i.edited);
+
+        // drop anything that repeats a kept item (e.g. a pinned question) or another new item
+        const unique = dropDuplicates(generated, kept, textOf);
+        console.log(
+          `REGEN ${section}${category ? ` (${category})` : ""}: generated=${generated.length} kept=${kept.length} unique=${unique.length}`
+        );
+
+        // nothing new and non-duplicate: leave the section exactly as it is
+        if (unique.length === 0) return { noNewItems: true };
+
         const used = new Set(kept.map((i) => i.id));
-        const fresh = generated.map((g) => ({ ...g, id: nextId(prefix, used), edited: false }));
+        const fresh = unique.map((g) => ({ ...g, id: nextId(prefix, used), edited: false }));
 
         d[section] = [...kept, ...fresh];
         if (section === "questions") rebuildSchedule(d); // keep schedule ids valid
@@ -494,6 +570,9 @@ router.post(
       });
 
       if (!result) return res.status(404).json({ message: "Kit not found" });
+      if (result.noNewItems) {
+        return res.status(409).json({ message: "Only duplicates were generated; existing items were kept" });
+      }
       return res.json(result);
     } catch (err) {
       console.error("REGENERATE ERROR:", err.stack);

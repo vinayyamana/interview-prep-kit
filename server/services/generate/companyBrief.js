@@ -8,6 +8,9 @@ const BriefSchema = z.object({
 
 const MAX_PAGES = 4;
 const MAX_CHARS_PER_PAGE = 2500;
+// If all readable pages together have less text than this, there is nothing
+// real to summarise, so we report that honestly instead of asking the model.
+const MIN_TOTAL_CHARS = 250;
 
 const SYSTEM = `You write a short, factual company brief for someone preparing for a job interview.
 Rules:
@@ -27,7 +30,7 @@ function pageUrl(p) {
 function pickPages(crawl) {
   const pages = (crawl && crawl.pages) || [];
   const hiringUrls = new Set(((crawl && crawl.hiringPages) || []).map(pageUrl));
-  const readable = pages.filter((p) => p && p.text && p.text.trim().length > 200);
+  const readable = pages.filter((p) => p && p.text && p.text.trim().length > 60);
   // homepage first, then hiring/about pages, then the rest
   const home = readable.slice(0, 1);
   const hiring = readable.slice(1).filter((p) => hiringUrls.has(p.url));
@@ -69,6 +72,15 @@ async function generateCompanyBrief({ companyName, crawl, discussionResults }) {
     return honestBrief(
       companyName,
       `No readable pages could be retrieved from ${companyName || "the company site"}, so no company research is available for this kit.`
+    );
+  }
+
+  // Pages exist but have almost no real content (e.g. a placeholder site).
+  const totalChars = chosen.reduce((n, p) => n + p.text.trim().length, 0);
+  if (totalChars < MIN_TOTAL_CHARS) {
+    return honestBrief(
+      companyName,
+      `The ${companyName || "company"} site returned very little readable content, so no company details are stated here.`
     );
   }
 
