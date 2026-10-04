@@ -1,0 +1,7 @@
+[
+  {"id":"edge-stub","jd":"Backend dev needed.\nMust know Node.","company_url":"http://127.0.0.1:8099/","days":3},
+  {"id":"edge-nohiring","jd":"Senior Backend Engineer\n\nWe are looking for an engineer to build forecasting APIs.\n\nRequired:\n- 5+ years of Node.js experience\n- Strong knowledge of MongoDB\n- Experience designing REST APIs\n- Comfortable mentoring junior engineers\n\nNice to have:\n- Experience with Docker","company_url":"http://127.0.0.1:8098/","days":5},
+  {"id":"edge-badurl","jd":"Senior Backend Engineer\n\nWe are looking for an engineer to build forecasting APIs.\n\nRequired:\n- 5+ years of Node.js experience\n- Strong knowledge of MongoDB\n- Experience designing REST APIs\n- Comfortable mentoring junior engineers\n\nNice to have:\n- Experience with Docker","company_url":"http://127.0.0.1:1/","days":5},
+  {"id":"edge-dup-1","jd":"Senior Backend Engineer\n\nWe are building payment APIs.\n\nRequired:\n- 5+ years of Node.js experience\n- Strong knowledge of PostgreSQL\n- Experience designing system architecture\n- Comfortable mentoring junior engineers\n\nNice to have:\n- Experience with Kubernetes","company_url":"http://127.0.0.1:8099/","days":5},
+  {"id":"edge-dup-2","jd":"Senior Backend Engineer\n\nWe are building payment APIs.\n\nRequired:\n- 5+ years of Node.js experience\n- Strong knowledge of PostgreSQL\n- Experience designing system architecture\n- Comfortable mentoring junior engineers\n\nNice to have:\n- Experience with Kubernetes","company_url":"http://127.0.0.1:8099/","days":5}
+]

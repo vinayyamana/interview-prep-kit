@@ -4,3 +4,7 @@ node_modules
 .next
 kits-output.json
 kits.json
+
+edge-kits.json
+server/kits-test.json
+server/kits-output.json
