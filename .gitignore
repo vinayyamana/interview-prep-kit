@@ -8,3 +8,8 @@ kits.json
 edge-kits.json
 server/kits-test.json
 server/kits-output.json
+out.json
+days-cases.json
+edge-cases.json
+kits-days.json
+test-sites/
