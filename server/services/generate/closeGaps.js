@@ -38,6 +38,7 @@ async function closeCoverageGaps({ role, research, questions }) {
       try {
         const alreadyAsked = all.map((q) => q.prompt).slice(-12);
         const fresh = await generateForCategory(category, role, reqs, research, alreadyAsked);
+        const withoutIds = fresh.map(({ id, ...rest }) => rest);
         all.push(...fresh);
         all = assignIds(all);
       } catch (err) {
