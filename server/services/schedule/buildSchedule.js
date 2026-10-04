@@ -84,25 +84,27 @@ function dayFocus(qs, requirements, isReview) {
   if (qs.length === 0) return "No questions available yet";
 
   const reqById = new Map(requirements.map((r) => [r.id, r]));
-  const groups = new Map();
+  const byCategory = new Map();
   for (const q of qs) {
-    const primary = idsOf(q)[0] || "";
-    const key = `${primary}|${q.category}`;
-    const g = groups.get(key) || { primary, category: q.category, count: 0 };
-    g.count += 1;
-    groups.set(key, g);
+    const label = requirementLabel(reqById.get(idsOf(q)[0]));
+    const list = byCategory.get(q.category) || [];
+    if (label && !list.includes(label)) list.push(label);
+    byCategory.set(q.category, list);
   }
 
-  const labels = [...groups.values()]
-    .sort((a, b) => {
-      const pa = reqById.get(a.primary)?.priority === "must" ? 0 : 1;
-      const pb = reqById.get(b.primary)?.priority === "must" ? 0 : 1;
-      return pa - pb || b.count - a.count;
+  const parts = [...byCategory.entries()]
+    .map(([cat, labels]) => {
+      if (cat === "company-fit") return "Company fit";
+      const prefix =
+        cat === "system-design" ? "System design" :
+        cat === "behavioural" ? "Behavioural" : null;
+      const names = labels.slice(0, 2).join(", ");
+      if (!prefix) return names;
+      return names ? `${prefix}: ${names}` : prefix;
     })
-    .map((g) => groupLabel(g.category, reqById.get(g.primary)))
     .filter(Boolean);
 
-  const label = [...new Set(labels)].slice(0, 2).join(" + ") || "General practice";
+  const label = parts.slice(0, 2).join(" + ") || "General practice";
   return isReview ? `Review: ${label}` : label;
 }
 
