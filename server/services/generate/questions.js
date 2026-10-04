@@ -23,7 +23,7 @@ const CATEGORIES = {
   behavioural: {
     kinds: ["behavioural"],
     focus:
-      "Behavioural questions answered with a past-experience story (STAR format). For requirements marked [nice], start with a conditional such as \"If you have experience with X, ...\".",
+      "Behavioural questions answered with a past-experience story (STAR format). Ask about [nice] requirements the same direct way as the others.",
   },
   "system-design": {
     kinds: ["technical"],
@@ -42,6 +42,9 @@ const CATEGORIES = {
 
 const DUPLICATE_THRESHOLD = 0.75;
 
+// A fact (value or hiring stage) must have at least this share of its words in the crawled text.
+const FACT_SUPPORT_THRESHOLD = 0.6;
+
 // How many "already asked" prompts the model sees: pinned ones first, then the newest generated ones.
 const MAX_PINNED_IN_PROMPT = 8;
 const MAX_GENERATED_IN_PROMPT = 8;
@@ -55,7 +58,8 @@ Rules:
 - Within one category, each question must test a different skill or scenario. Do not ask two questions about the same situation.
 - If the research describes the hiring process (for example a take-home or a system design round), make the questions reflect it. If no hiring process is described, do not invent one.
 - Never assume the candidate has a specific background (startup, remote work, a past employer, a particular tool). Do not write "your startup experience" or similar.
-- If a requirement is marked [nice], phrase the question conditionally: "If you have experience with X, how...". Otherwise ask how they would approach it.
+- Ask about every requirement directly, whether it is [must] or [nice]. Never start a question with "If you have experience with".
+- Do not ask for an exact outcome of something the language, runtime or platform does not guarantee (for example the relative order of timers and immediates on the main module). Ask about the mechanism and its trade-offs instead.
 - answer_outline is a short outline of a strong answer, written as a single string. Write it as guidance on what to cover, not as a statement about the candidate.
 - difficulty is an integer from 1 (easy) to 3 (hard).
 Return JSON: {"questions":[{"requirement_ids":["r1"],"prompt":"...","answer_outline":"...","difficulty":2}]}`;
@@ -67,8 +71,9 @@ Rules:
 - A question about a value should ask the candidate how they would approach it or to describe a time they did. Never assume the candidate has a specific background (startup, remote work, a past employer).
 - A question about a hiring stage should help the candidate prepare for that stage.
 - Each question must use a different value or stage.
+- If any value or stage is given, write at least one question. Only return an empty list when both lists say "None stated."
 - requirement_ids: the ONE id from the given list that the question relates to most closely. Use the id exactly as given. Never invent ids.
-- Do not repeat or rephrase any question listed under "Already asked".
+- Do not repeat or rephrase any question listed under "Already asked", unless that would leave you with no question at all.
 - answer_outline is a short outline of a strong answer, written as guidance on what to cover, not as a statement about the candidate.
 - difficulty is an integer from 1 (easy) to 3 (hard).
 Return JSON: {"questions":[{"requirement_ids":["r1"],"prompt":"...","answer_outline":"...","difficulty":2}]}`;
@@ -249,21 +254,81 @@ function dropDuplicates(list) {
   return { kept, dropped };
 }
 
+/* ---------- fact verification (code decides, not the model) ---------- */
+
+// Keep only values / hiring stages whose words actually appear in the crawled text.
+// This stops the model from inventing company values that the site never states.
+function verifyFacts(facts, sourceText) {
+  const hay = normalize(sourceText);
+  const supported = (item) => {
+    const words = normalize(item).split(" ").filter((w) => w.length > 3);
+    if (!words.length) return false;
+    const hits = words.filter((w) => hay.includes(w)).length;
+    return hits / words.length >= FACT_SUPPORT_THRESHOLD;
+  };
+  return {
+    ...facts,
+    values: (facts?.values || []).filter(supported),
+    hiring_stages: (facts?.hiring_stages || []).filter(supported),
+  };
+}
+
+async function loadVerifiedFacts(research) {
+  const raw = await getCompanyFacts(research);
+  return verifyFacts(raw, `${research.siteText || ""} ${research.hiringText || ""}`);
+}
+
+/* ---------- company-fit fallback (no model, only verified facts) ---------- */
+
+// Last resort when the model returns nothing even though verified facts exist.
+// Every question is built from one verified value or hiring stage, so nothing is invented.
+function factQuestions(facts, requirements, alreadyAsked) {
+  const id = requirements[0]?.id;
+  if (!id) return [];
+
+  const fromStages = (facts.hiring_stages || []).map((stage) => ({
+    category: "company-fit",
+    requirement_ids: [id],
+    prompt: `The company's hiring process includes this stage: "${stage}". How will you prepare for it, and what do you expect it to test?`,
+    answer_outline: `Say what the "${stage}" stage is likely to check, how you will practise for it, and one example from your work that shows the skill it tests.`,
+    difficulty: 2,
+  }));
+  const fromValues = (facts.values || []).map((value) => ({
+    category: "company-fit",
+    requirement_ids: [id],
+    prompt: `The company lists "${value}" as one of its values. Describe a time you acted on this in your work, and what came of it.`,
+    answer_outline: `Pick one real example that shows "${value}" in practice: the situation, what you did, and the result. Then connect it to how you would work in this role.`,
+    difficulty: 2,
+  }));
+
+  // alternate stage / value so a small cap still mixes both
+  const mixed = [];
+  const longest = Math.max(fromStages.length, fromValues.length);
+  for (let i = 0; i < longest; i++) {
+    if (fromStages[i]) mixed.push(fromStages[i]);
+    if (fromValues[i]) mixed.push(fromValues[i]);
+  }
+  return mixed.filter((q) => !alreadyAsked.some((a) => similarity(a, q.prompt) >= DUPLICATE_THRESHOLD));
+}
+
 /* ---------- generation ---------- */
 
-async function generateForCategory(category, role, requirements, research, alreadyAsked = []) {
+// Returns { questions, emptyReason }. emptyReason explains an empty result, so the caller can
+// report the real cause instead of one vague message.
+async function runCategory(category, role, requirements, research, alreadyAsked = []) {
   const allowed = new Set(requirements.map((r) => r.id));
   const cap = CATEGORIES[category].maxQuestions;
   const isFit = category === "company-fit";
 
   let facts = null;
   if (isFit) {
-    facts = research.facts || (await getCompanyFacts(research));
+    facts = research.facts || (await loadVerifiedFacts(research));
     // nothing written on the site -> no company-fit questions, never invent them
-    if (!hasFacts(facts)) return [];
+    if (!hasFacts(facts)) return { questions: [], emptyReason: "NO_COMPANY_FACTS" };
   }
 
   let lastError;
+  let sawEmptyAnswer = false;
 
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
@@ -275,18 +340,40 @@ async function generateForCategory(category, role, requirements, research, alrea
         .questions.map((q) => {
           const ids = q.requirement_ids.filter((id) => allowed.has(id));
           // company-fit only needs some id to attach to, so do not lose the question over a wrong id
-          const fixed = ids.length === 0 && isFit ? [requirements[0].id] : ids;
+          const fixed = ids.length === 0 && isFit && requirements[0] ? [requirements[0].id] : ids;
           return { ...q, requirement_ids: fixed };
         })
         .filter((q) => q.requirement_ids.length > 0)
         .map((q) => ({ category, ...q }));
-      return cap ? list.slice(0, cap) : list;
+
+      // facts exist, so an empty answer is a model miss: try once more, then use the fallback
+      if (isFit && list.length === 0) {
+        sawEmptyAnswer = true;
+        console.log(
+          `[company-fit] model returned no usable questions (attempt ${attempt + 1}):`,
+          JSON.stringify(raw).slice(0, 300)
+        );
+        continue;
+      }
+      return { questions: cap ? list.slice(0, cap) : list, emptyReason: null };
     } catch (err) {
       if (/429|quota/i.test(err.message || "")) throw err;
       lastError = err;
     }
   }
+
+  if (isFit && sawEmptyAnswer) {
+    const fallback = factQuestions(facts, requirements, alreadyAsked).slice(0, cap);
+    console.log(`[company-fit] using ${fallback.length} fact-based fallback question(s)`);
+    return { questions: fallback, emptyReason: "MODEL_RETURNED_NONE" };
+  }
   throw new Error(`Question generation failed for ${category}: ${lastError.message}`);
+}
+
+// Same signature as before (used by other modules): returns just the questions.
+async function generateForCategory(category, role, requirements, research, alreadyAsked = []) {
+  const { questions } = await runCategory(category, role, requirements, research, alreadyAsked);
+  return questions;
 }
 
 // avoidPrompts: questions that must not be repeated (for example ones the user pinned).
@@ -298,12 +385,12 @@ async function generateQuestions({ role, research, avoidPrompts = [], categories
 
   const pinned = avoidPrompts.slice(0, MAX_PINNED_IN_PROMPT);
   if (!categories || categories.includes("company-fit")) {
-    const f = await getCompanyFacts(research);
+    const f = await loadVerifiedFacts(research);
     research.facts = f; // reuse below, do not call the LLM twice
     console.log(
       "[company-fit] siteText:", research.siteText?.length,
       "hiringText:", research.hiringText?.length,
-      "facts:", JSON.stringify(f)
+      "verified facts:", JSON.stringify(f)
     );
   }
   const toGenerate = Object.keys(CATEGORIES).filter((c) => !categories || categories.includes(c));
@@ -319,10 +406,17 @@ async function generateQuestions({ role, research, avoidPrompts = [], categories
     try {
       // later categories see what was already asked, so they do not repeat it
       const alreadyAsked = [...pinned, ...questions.map((q) => q.prompt).slice(-MAX_GENERATED_IN_PROMPT)];
-      const made = await generateForCategory(category, role, eligible, research, alreadyAsked);
+      const { questions: made, emptyReason } = await runCategory(
+        category,
+        role,
+        eligible,
+        research,
+        alreadyAsked
+      );
       if (category === "company-fit" && made.length === 0) {
-        console.log("[skip]", category, "NO_COMPANY_FACTS (model returned nothing usable)");
-        skipped.push({ category, reason: "NO_COMPANY_FACTS" });
+        const why = emptyReason || "NO_COMPANY_FACTS";
+        console.log("[skip]", category, why);
+        skipped.push({ category, reason: why });
         continue;
       }
       questions.push(...made);
@@ -345,4 +439,4 @@ async function generateQuestions({ role, research, avoidPrompts = [], categories
   };
 }
 
-module.exports = { generateQuestions, generateForCategory, buildResearch };
+module.exports = { generateQuestions, generateForCategory, buildResearch, verifyFacts };

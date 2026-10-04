@@ -8,6 +8,7 @@ const { generateCompanyBrief } = require("./generate/companyBrief");
 const { buildSchedule } = require("./schedule/buildSchedule");
 const { checkCoverage } = require("./coverage/checkCoverage");
 const { assertSafeUrl } = require("./security/validateUrl");
+const { validateKit } = require("../src/kit/kitSchema");
 
 // company_url may be unreachable; that is reported honestly, never fatal to the whole run.
 async function assembleKit({ jd, companyUrl, days }) {
@@ -66,7 +67,7 @@ async function assembleKit({ jd, companyUrl, days }) {
     discussionResults: discussion.results,
   });
 
-  return {
+  const kit = {
     source: {
       company: companyName || "",
       company_url: companyUrl,
@@ -102,6 +103,13 @@ async function assembleKit({ jd, companyUrl, days }) {
       thin_description: role.thin,
     },
   };
+
+  // Validate the kit exactly as it will ship.
+  const check = validateKit(kit);
+  if (!check.ok) {
+    throw new Error("INVALID_KIT: " + check.errors.join("; "));
+  }
+  return kit;
 }
 
 module.exports = { assembleKit };

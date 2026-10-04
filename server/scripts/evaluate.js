@@ -37,12 +37,24 @@ function loadCases(filePath) {
     process.exit(1);
   }
 
-  if (!Array.isArray(cases)) {
-    console.error('Input file must be a JSON array of cases.');
+  // Accept a bare array, or an object like { "cases": [...] }
+  const list = Array.isArray(cases)
+    ? cases
+    : cases && Array.isArray(cases.cases)
+      ? cases.cases
+      : null;
+
+  if (!list) {
+    const found = Array.isArray(cases)
+      ? 'array'
+      : cases && typeof cases === 'object'
+        ? `object with keys: ${Object.keys(cases).join(', ')}`
+        : typeof cases;
+    console.error(`Input file must be a JSON array of cases. Found: ${found}`);
     process.exit(1);
   }
 
-  return cases;
+  return list;
 }
 
 function validateCase(c) {

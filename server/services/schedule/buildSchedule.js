@@ -14,11 +14,28 @@ function validateDays(daysAvailable) {
   return daysAvailable;
 }
 
+// Round-robin across groups: first question of every group, then the second of every group, ...
+function roundRobin(groups) {
+  const out = [];
+  const longest = Math.max(0, ...groups.map((g) => g.qs.length));
+  for (let round = 0; round < longest; round++) {
+    for (const g of groups) {
+      if (g.qs[round]) out.push(g.qs[round]);
+    }
+  }
+  return out;
+}
+
+// Ordering rules:
+//  1. must-have material before nice-to-have material
+//  2. inside each of those, every requirement gets its hardest question first
+//     (so a must-have never waits behind another requirement's whole question set)
+//  3. harder groups before easier ones
 function orderQuestions(questions, requirements) {
   const reqById = new Map(requirements.map((r) => [r.id, r]));
   const isMust = (id) => reqById.get(id)?.priority === "must";
 
-  // Group by primary requirement so one day stays on one theme.
+  // Group by primary requirement.
   const groups = new Map();
   for (const q of questions) {
     const key = idsOf(q)[0] ?? "_none";
@@ -32,7 +49,6 @@ function orderQuestions(questions, requirements) {
     hardest: Math.max(...qs.map((q) => q.difficulty || 0)),
   }));
 
-  // must-have groups first, then harder groups, then bigger groups
   info.sort(
     (a, b) =>
       Number(b.must) - Number(a.must) ||
@@ -40,44 +56,77 @@ function orderQuestions(questions, requirements) {
       b.qs.length - a.qs.length
   );
 
-  return info.flatMap((g) => g.qs);
-}
-
-function uniqueLabel(label, used) {
-  const n = (used.get(label) || 0) + 1;
-  used.set(label, n);
-  return n === 1 ? label : `${label} (part ${n})`;
+  return [
+    ...roundRobin(info.filter((g) => g.must)),
+    ...roundRobin(info.filter((g) => !g.must)),
+  ];
 }
 
 function shorten(text, max = 60) {
   return text.length > max ? `${text.slice(0, max - 1).trim()}…` : text;
 }
 
-function dayFocus(qs, requirements, isReview, used) {
-  if (qs.length === 0) return uniqueLabel("No questions available yet", used);
+function requirementLabel(req) {
+  if (!req) return null;
+  return req.topic || (req.text ? shorten(req.text) : null);
+}
+
+// Label for one (requirement, category) group of questions inside a day.
+function groupLabel(category, req) {
+  const base = requirementLabel(req);
+  if (category === "company-fit") return "Company fit";
+  if (category === "system-design") return base ? `System design: ${base}` : "System design";
+  if (category === "behavioural") return base ? `Behavioural: ${base}` : "Behavioural";
+  return base;
+}
+
+function dayFocus(qs, requirements, isReview) {
+  if (qs.length === 0) return "No questions available yet";
 
   const reqById = new Map(requirements.map((r) => [r.id, r]));
-  const counts = new Map();
+  const groups = new Map();
   for (const q of qs) {
-    const primary = idsOf(q)[0];
-    if (primary) counts.set(primary, (counts.get(primary) || 0) + 1);
+    const primary = idsOf(q)[0] || "";
+    const key = `${primary}|${q.category}`;
+    const g = groups.get(key) || { primary, category: q.category, count: 0 };
+    g.count += 1;
+    groups.set(key, g);
   }
 
-  const top = [...counts.entries()]
+  const labels = [...groups.values()]
     .sort((a, b) => {
-      const pa = reqById.get(a[0])?.priority === "must" ? 0 : 1;
-      const pb = reqById.get(b[0])?.priority === "must" ? 0 : 1;
-      return pa - pb || b[1] - a[1];
+      const pa = reqById.get(a.primary)?.priority === "must" ? 0 : 1;
+      const pb = reqById.get(b.primary)?.priority === "must" ? 0 : 1;
+      return pa - pb || b.count - a.count;
     })
-    .slice(0, 2)
-    .map(([id]) => {
-      const r = reqById.get(id);
-      return r?.topic || (r?.text ? shorten(r.text) : null);
-    })
+    .map((g) => groupLabel(g.category, reqById.get(g.primary)))
     .filter(Boolean);
 
-  const label = top.join(" + ") || "General practice";
-  return uniqueLabel(isReview ? `Review: ${label}` : label, used);
+  const label = [...new Set(labels)].slice(0, 2).join(" + ") || "General practice";
+  return isReview ? `Review: ${label}` : label;
+}
+
+// Make sure no two days share a focus label.
+// 1st choice: add a short snippet of the day's first question. Last resort: "(part n)".
+function makeLabelsDistinct(days, questions) {
+  const qById = new Map(questions.map((q) => [q.id, q]));
+  const counts = new Map();
+  for (const d of days) counts.set(d.focus, (counts.get(d.focus) || 0) + 1);
+
+  for (const d of days) {
+    if (counts.get(d.focus) > 1) {
+      const first = qById.get(d.question_ids[0]);
+      if (first?.prompt) d.focus = `${d.focus}: ${shorten(first.prompt, 40)}`;
+    }
+  }
+
+  const used = new Map();
+  for (const d of days) {
+    const n = (used.get(d.focus) || 0) + 1;
+    used.set(d.focus, n);
+    if (n > 1) d.focus = `${d.focus} (part ${n})`;
+  }
+  return days;
 }
 
 // Split ordered questions into n consecutive days with similar total minutes.
@@ -122,7 +171,6 @@ function buildSchedule(questions, requirements, daysAvailable) {
     }
   }
 
-  const used = new Map();
   const days = chunks.map(({ qs, review }, idx) => {
     const raw = qs.reduce((s, q) => s + cost(q), 0);
     const minutes = review && qs.length
@@ -130,13 +178,13 @@ function buildSchedule(questions, requirements, daysAvailable) {
       : raw;
     return {
       day: idx + 1,
-      focus: dayFocus(qs, requirements, review, used),
+      focus: dayFocus(qs, requirements, review),
       question_ids: qs.map((q) => q.id),
       minutes,
     };
   });
 
-  return { days_available: n, days };
+  return { days_available: n, days: makeLabelsDistinct(days, questions) };
 }
 
 // Must-have requirement ids that no scheduled question covers.
