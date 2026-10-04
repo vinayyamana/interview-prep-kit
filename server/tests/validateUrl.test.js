@@ -1,3 +1,5 @@
+import { beforeEach } from "vitest";
+beforeEach(() => { process.env.ALLOW_PRIVATE_URLS = "false"; });
 import { describe, it, expect } from "vitest";
 import { createRequire } from "module";
 

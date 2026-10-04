@@ -3,7 +3,7 @@ const dns = require("dns").promises;
 const net = require("net");
 const { cleanText, dedupeSentences }  = require("./cleanText");
 
-const MAX_BYTES = 1_000_000;
+const MAX_BYTES = 3_000_000;
 const TIMEOUT_MS = 10_000;
 const UA = "InterviewPrepKitBot/1.0";
 
