@@ -1,6 +1,9 @@
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
+// npm sets INIT_CWD to the folder the user ran the command from,
+// so relative --input/--output paths work from the repo root too.
+const baseDir = process.env.INIT_CWD || process.cwd();
 
 const { assembleKit } = require('../services/assembleKit');
 
@@ -20,7 +23,7 @@ const outputPath = getArg('--output');
 function loadCases(filePath) {
   let raw;
   try {
-    raw = fs.readFileSync(path.resolve(filePath), 'utf-8');
+    raw = fs.readFileSync(path.resolve(baseDir, filePath), 'utf-8');
   } catch (err) {
     console.error(`Could not read input file at ${filePath}:`, err.message);
     process.exit(1);
@@ -95,7 +98,7 @@ function writeOutput(kits) {
     generated_at: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
     kits,
   };
-  fs.writeFileSync(path.resolve(outputPath), JSON.stringify(output, null, 2));
+  fs.writeFileSync(path.resolve(baseDir, outputPath), JSON.stringify(output, null, 2));
 }
 
 async function main() {
