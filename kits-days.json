@@ -1,0 +1,1282 @@
+{
+  "version": "1.0",
+  "generated_at": "2026-10-04T03:08:23Z",
+  "kits": [
+    {
+      "id": "dup-a",
+      "status": "ok",
+      "kit": {
+        "source": {
+          "company": "example",
+          "company_url": "https://example.com",
+          "role": "Backend Engineer",
+          "location": "",
+          "jd_chars": 120,
+          "researched_at": "2026-10-04T03:08:19.449Z",
+          "pages_used": [
+            "https://example.com/"
+          ]
+        },
+        "company_brief": {
+          "summary": "The example site returned very little readable content, so no company details are stated here.",
+          "what_they_do": "Not available for example. You can write your own notes here.",
+          "sources": [],
+          "edited": false
+        },
+        "role": {
+          "title": "Backend Engineer",
+          "seniority": "",
+          "responsibilities": [],
+          "requirements": [
+            {
+              "id": "r1",
+              "text": "3+ years of Node.js",
+              "kind": "technical",
+              "priority": "must",
+              "topic": "Node.js experience"
+            },
+            {
+              "id": "r2",
+              "text": "Experience with MongoDB",
+              "kind": "technical",
+              "priority": "must",
+              "topic": "MongoDB experience"
+            },
+            {
+              "id": "r3",
+              "text": "Docker",
+              "kind": "technical",
+              "priority": "nice",
+              "topic": "Docker experience"
+            }
+          ]
+        },
+        "questions": [
+          {
+            "id": "q1",
+            "category": "technical",
+            "requirement_ids": [
+              "r1"
+            ],
+            "prompt": "How does the Node.js event loop handle microtasks (like promises) versus macrotasks (like setTimeout), and in what order are they executed during a tick?",
+            "answer_outline": "Explain the phases of the event loop, the distinction between the libuv task queue and the V8 microtask queue, and how process.nextTick and promises take priority before moving to the next timer or I/O phase.",
+            "difficulty": 2,
+            "edited": false
+          },
+          {
+            "id": "q2",
+            "category": "technical",
+            "requirement_ids": [
+              "r1"
+            ],
+            "prompt": "How would you diagnose and resolve a severe memory leak in a long-running Node.js application?",
+            "answer_outline": "Mention taking and comparing heap snapshots using Chrome DevTools or the heapdump module, identifying detached DOM nodes or growing closures, tracking V8 memory usage flags, and analyzing event listener accumulation.",
+            "difficulty": 3,
+            "edited": false
+          },
+          {
+            "id": "q3",
+            "category": "technical",
+            "requirement_ids": [
+              "r2"
+            ],
+            "prompt": "Explain how MongoDB indexes work under the hood (using B-trees) and how you would troubleshoot a slow query that is performing a full collection scan.",
+            "answer_outline": "Discuss B-tree index structures, using explain() to analyze query execution plans, adding compound indexes following the equality, sort, range (ESR) rule, and avoiding common anti-patterns like unindexed regex queries.",
+            "difficulty": 2,
+            "edited": false
+          },
+          {
+            "id": "q4",
+            "category": "technical",
+            "requirement_ids": [
+              "r2"
+            ],
+            "prompt": "How do MongoDB transactions work in a replica set environment, and what are the performance trade-offs of using multi-document transactions compared to proper schema design?",
+            "answer_outline": "Explain the WiredTiger storage engine's snapshot isolation for transactions, the overhead of distributed locks and consensus in replica sets, and why embedding or referencing documents to avoid transactions is often preferred.",
+            "difficulty": 3,
+            "edited": false
+          },
+          {
+            "id": "q5",
+            "category": "technical",
+            "requirement_ids": [
+              "r3"
+            ],
+            "prompt": "If you have experience with Docker, how do you structure a multi-stage Dockerfile for a Node.js application to minimize the final image size and secure dependencies?",
+            "answer_outline": "Describe using a build stage with full devDependencies to compile TypeScript or native modules, and a final production stage that copies only built artifacts and production node_modules, running as a non-root user.",
+            "difficulty": 2,
+            "edited": false
+          }
+        ],
+        "flashcards": [
+          {
+            "id": "f1",
+            "front": "What is the execution order of microtasks and macrotasks in the event loop?",
+            "back": "Microtasks, such as promises and process.nextTick, execute immediately after the current operation finishes and before the event loop moves to the next phase or macrotask.",
+            "requirement_ids": [
+              "r1"
+            ],
+            "edited": false
+          },
+          {
+            "id": "f2",
+            "front": "What data structure do MongoDB indexes use, and how do you troubleshoot slow queries?",
+            "back": "MongoDB uses B-tree structures for indexes. You can troubleshoot slow queries by using the explain() method to detect full collection scans and adding appropriate compound indexes.",
+            "requirement_ids": [
+              "r2"
+            ],
+            "edited": false
+          },
+          {
+            "id": "f3",
+            "front": "How do you minimize Node.js Docker image size using multi-stage builds?",
+            "back": "Use a build stage with development dependencies to compile the application, then copy only the production artifacts and dependencies into a minimal final production image running as a non-root user.",
+            "requirement_ids": [
+              "r3"
+            ],
+            "edited": false
+          },
+          {
+            "id": "f4",
+            "front": "How do you diagnose a memory leak in a Node.js application?",
+            "back": "Take and compare heap snapshots using Chrome DevTools to identify growing closures, uncollected objects, or detached event listeners causing memory accumulation.",
+            "requirement_ids": [
+              "r1"
+            ],
+            "edited": false
+          },
+          {
+            "id": "f5",
+            "front": "How do MongoDB transactions work, and what are their performance trade-offs?",
+            "back": "MongoDB uses WiredTiger snapshot isolation for multi-document transactions. They introduce performance overhead from distributed locking and consensus, making careful schema design preferable when possible.",
+            "requirement_ids": [
+              "r2"
+            ],
+            "edited": false
+          }
+        ],
+        "schedule": {
+          "days_available": 5,
+          "days": [
+            {
+              "day": 1,
+              "focus": "Node.js experience",
+              "question_ids": [
+                "q2"
+              ],
+              "minutes": 45
+            },
+            {
+              "day": 2,
+              "focus": "Node.js experience (part 2)",
+              "question_ids": [
+                "q1"
+              ],
+              "minutes": 30
+            },
+            {
+              "day": 3,
+              "focus": "MongoDB experience",
+              "question_ids": [
+                "q4"
+              ],
+              "minutes": 45
+            },
+            {
+              "day": 4,
+              "focus": "MongoDB experience (part 2)",
+              "question_ids": [
+                "q3"
+              ],
+              "minutes": 30
+            },
+            {
+              "day": 5,
+              "focus": "Docker experience",
+              "question_ids": [
+                "q5"
+              ],
+              "minutes": 30
+            }
+          ]
+        },
+        "coverage": {
+          "uncovered_requirement_ids": [],
+          "passes": 1,
+          "history": [
+            {
+              "pass": 1,
+              "gaps": []
+            }
+          ]
+        },
+        "meta": {
+          "crawl_error": null,
+          "research_skipped": null,
+          "thin_description": true
+        }
+      },
+      "error": null
+    },
+    {
+      "id": "dup-b",
+      "status": "ok",
+      "kit": {
+        "source": {
+          "company": "example",
+          "company_url": "https://example.com",
+          "role": "Backend Engineer",
+          "location": "",
+          "jd_chars": 120,
+          "researched_at": "2026-10-04T03:08:21.550Z",
+          "pages_used": [
+            "https://example.com/"
+          ]
+        },
+        "company_brief": {
+          "summary": "The example site returned very little readable content, so no company details are stated here.",
+          "what_they_do": "Not available for example. You can write your own notes here.",
+          "sources": [],
+          "edited": false
+        },
+        "role": {
+          "title": "Backend Engineer",
+          "seniority": "",
+          "responsibilities": [],
+          "requirements": [
+            {
+              "id": "r1",
+              "text": "3+ years of Node.js",
+              "kind": "technical",
+              "priority": "must",
+              "topic": "Node.js experience"
+            },
+            {
+              "id": "r2",
+              "text": "Experience with MongoDB",
+              "kind": "technical",
+              "priority": "must",
+              "topic": "MongoDB experience"
+            },
+            {
+              "id": "r3",
+              "text": "Docker",
+              "kind": "technical",
+              "priority": "nice",
+              "topic": "Docker experience"
+            }
+          ]
+        },
+        "questions": [
+          {
+            "id": "q1",
+            "category": "technical",
+            "requirement_ids": [
+              "r1"
+            ],
+            "prompt": "How does the Node.js event loop handle microtasks (like promises) versus macrotasks (like setTimeout), and in what order are they executed during a tick?",
+            "answer_outline": "Explain the phases of the event loop, the distinction between the libuv task queue and the V8 microtask queue, and how process.nextTick and promises take priority before moving to the next timer or I/O phase.",
+            "difficulty": 2,
+            "edited": false
+          },
+          {
+            "id": "q2",
+            "category": "technical",
+            "requirement_ids": [
+              "r1"
+            ],
+            "prompt": "How would you diagnose and resolve a severe memory leak in a long-running Node.js application?",
+            "answer_outline": "Mention taking and comparing heap snapshots using Chrome DevTools or the heapdump module, identifying detached DOM nodes or growing closures, tracking V8 memory usage flags, and analyzing event listener accumulation.",
+            "difficulty": 3,
+            "edited": false
+          },
+          {
+            "id": "q3",
+            "category": "technical",
+            "requirement_ids": [
+              "r2"
+            ],
+            "prompt": "Explain how MongoDB indexes work under the hood (using B-trees) and how you would troubleshoot a slow query that is performing a full collection scan.",
+            "answer_outline": "Discuss B-tree index structures, using explain() to analyze query execution plans, adding compound indexes following the equality, sort, range (ESR) rule, and avoiding common anti-patterns like unindexed regex queries.",
+            "difficulty": 2,
+            "edited": false
+          },
+          {
+            "id": "q4",
+            "category": "technical",
+            "requirement_ids": [
+              "r2"
+            ],
+            "prompt": "How do MongoDB transactions work in a replica set environment, and what are the performance trade-offs of using multi-document transactions compared to proper schema design?",
+            "answer_outline": "Explain the WiredTiger storage engine's snapshot isolation for transactions, the overhead of distributed locks and consensus in replica sets, and why embedding or referencing documents to avoid transactions is often preferred.",
+            "difficulty": 3,
+            "edited": false
+          },
+          {
+            "id": "q5",
+            "category": "technical",
+            "requirement_ids": [
+              "r3"
+            ],
+            "prompt": "If you have experience with Docker, how do you structure a multi-stage Dockerfile for a Node.js application to minimize the final image size and secure dependencies?",
+            "answer_outline": "Describe using a build stage with full devDependencies to compile TypeScript or native modules, and a final production stage that copies only built artifacts and production node_modules, running as a non-root user.",
+            "difficulty": 2,
+            "edited": false
+          }
+        ],
+        "flashcards": [
+          {
+            "id": "f1",
+            "front": "What is the execution order of microtasks and macrotasks in the event loop?",
+            "back": "Microtasks, such as promises and process.nextTick, execute immediately after the current operation finishes and before the event loop moves to the next phase or macrotask.",
+            "requirement_ids": [
+              "r1"
+            ],
+            "edited": false
+          },
+          {
+            "id": "f2",
+            "front": "What data structure do MongoDB indexes use, and how do you troubleshoot slow queries?",
+            "back": "MongoDB uses B-tree structures for indexes. You can troubleshoot slow queries by using the explain() method to detect full collection scans and adding appropriate compound indexes.",
+            "requirement_ids": [
+              "r2"
+            ],
+            "edited": false
+          },
+          {
+            "id": "f3",
+            "front": "How do you minimize Node.js Docker image size using multi-stage builds?",
+            "back": "Use a build stage with development dependencies to compile the application, then copy only the production artifacts and dependencies into a minimal final production image running as a non-root user.",
+            "requirement_ids": [
+              "r3"
+            ],
+            "edited": false
+          },
+          {
+            "id": "f4",
+            "front": "How do you diagnose a memory leak in a Node.js application?",
+            "back": "Take and compare heap snapshots using Chrome DevTools to identify growing closures, uncollected objects, or detached event listeners causing memory accumulation.",
+            "requirement_ids": [
+              "r1"
+            ],
+            "edited": false
+          },
+          {
+            "id": "f5",
+            "front": "How do MongoDB transactions work, and what are their performance trade-offs?",
+            "back": "MongoDB uses WiredTiger snapshot isolation for multi-document transactions. They introduce performance overhead from distributed locking and consensus, making careful schema design preferable when possible.",
+            "requirement_ids": [
+              "r2"
+            ],
+            "edited": false
+          }
+        ],
+        "schedule": {
+          "days_available": 5,
+          "days": [
+            {
+              "day": 1,
+              "focus": "Node.js experience",
+              "question_ids": [
+                "q2"
+              ],
+              "minutes": 45
+            },
+            {
+              "day": 2,
+              "focus": "Node.js experience (part 2)",
+              "question_ids": [
+                "q1"
+              ],
+              "minutes": 30
+            },
+            {
+              "day": 3,
+              "focus": "MongoDB experience",
+              "question_ids": [
+                "q4"
+              ],
+              "minutes": 45
+            },
+            {
+              "day": 4,
+              "focus": "MongoDB experience (part 2)",
+              "question_ids": [
+                "q3"
+              ],
+              "minutes": 30
+            },
+            {
+              "day": 5,
+              "focus": "Docker experience",
+              "question_ids": [
+                "q5"
+              ],
+              "minutes": 30
+            }
+          ]
+        },
+        "coverage": {
+          "uncovered_requirement_ids": [],
+          "passes": 1,
+          "history": [
+            {
+              "pass": 1,
+              "gaps": []
+            }
+          ]
+        },
+        "meta": {
+          "crawl_error": null,
+          "research_skipped": null,
+          "thin_description": true
+        }
+      },
+      "error": null
+    },
+    {
+      "id": "one-day",
+      "status": "ok",
+      "kit": {
+        "source": {
+          "company": "example",
+          "company_url": "https://example.com",
+          "role": "Backend Engineer",
+          "location": "",
+          "jd_chars": 120,
+          "researched_at": "2026-10-04T03:08:22.579Z",
+          "pages_used": [
+            "https://example.com/"
+          ]
+        },
+        "company_brief": {
+          "summary": "The example site returned very little readable content, so no company details are stated here.",
+          "what_they_do": "Not available for example. You can write your own notes here.",
+          "sources": [],
+          "edited": false
+        },
+        "role": {
+          "title": "Backend Engineer",
+          "seniority": "",
+          "responsibilities": [],
+          "requirements": [
+            {
+              "id": "r1",
+              "text": "3+ years of Node.js",
+              "kind": "technical",
+              "priority": "must",
+              "topic": "Node.js experience"
+            },
+            {
+              "id": "r2",
+              "text": "Experience with MongoDB",
+              "kind": "technical",
+              "priority": "must",
+              "topic": "MongoDB experience"
+            },
+            {
+              "id": "r3",
+              "text": "Docker",
+              "kind": "technical",
+              "priority": "nice",
+              "topic": "Docker experience"
+            }
+          ]
+        },
+        "questions": [
+          {
+            "id": "q1",
+            "category": "technical",
+            "requirement_ids": [
+              "r1"
+            ],
+            "prompt": "How does the Node.js event loop handle microtasks (like promises) versus macrotasks (like setTimeout), and in what order are they executed during a tick?",
+            "answer_outline": "Explain the phases of the event loop, the distinction between the libuv task queue and the V8 microtask queue, and how process.nextTick and promises take priority before moving to the next timer or I/O phase.",
+            "difficulty": 2,
+            "edited": false
+          },
+          {
+            "id": "q2",
+            "category": "technical",
+            "requirement_ids": [
+              "r1"
+            ],
+            "prompt": "How would you diagnose and resolve a severe memory leak in a long-running Node.js application?",
+            "answer_outline": "Mention taking and comparing heap snapshots using Chrome DevTools or the heapdump module, identifying detached DOM nodes or growing closures, tracking V8 memory usage flags, and analyzing event listener accumulation.",
+            "difficulty": 3,
+            "edited": false
+          },
+          {
+            "id": "q3",
+            "category": "technical",
+            "requirement_ids": [
+              "r2"
+            ],
+            "prompt": "Explain how MongoDB indexes work under the hood (using B-trees) and how you would troubleshoot a slow query that is performing a full collection scan.",
+            "answer_outline": "Discuss B-tree index structures, using explain() to analyze query execution plans, adding compound indexes following the equality, sort, range (ESR) rule, and avoiding common anti-patterns like unindexed regex queries.",
+            "difficulty": 2,
+            "edited": false
+          },
+          {
+            "id": "q4",
+            "category": "technical",
+            "requirement_ids": [
+              "r2"
+            ],
+            "prompt": "How do MongoDB transactions work in a replica set environment, and what are the performance trade-offs of using multi-document transactions compared to proper schema design?",
+            "answer_outline": "Explain the WiredTiger storage engine's snapshot isolation for transactions, the overhead of distributed locks and consensus in replica sets, and why embedding or referencing documents to avoid transactions is often preferred.",
+            "difficulty": 3,
+            "edited": false
+          },
+          {
+            "id": "q5",
+            "category": "technical",
+            "requirement_ids": [
+              "r3"
+            ],
+            "prompt": "If you have experience with Docker, how do you structure a multi-stage Dockerfile for a Node.js application to minimize the final image size and secure dependencies?",
+            "answer_outline": "Describe using a build stage with full devDependencies to compile TypeScript or native modules, and a final production stage that copies only built artifacts and production node_modules, running as a non-root user.",
+            "difficulty": 2,
+            "edited": false
+          }
+        ],
+        "flashcards": [
+          {
+            "id": "f1",
+            "front": "What is the execution order of microtasks and macrotasks in the event loop?",
+            "back": "Microtasks, such as promises and process.nextTick, execute immediately after the current operation finishes and before the event loop moves to the next phase or macrotask.",
+            "requirement_ids": [
+              "r1"
+            ],
+            "edited": false
+          },
+          {
+            "id": "f2",
+            "front": "What data structure do MongoDB indexes use, and how do you troubleshoot slow queries?",
+            "back": "MongoDB uses B-tree structures for indexes. You can troubleshoot slow queries by using the explain() method to detect full collection scans and adding appropriate compound indexes.",
+            "requirement_ids": [
+              "r2"
+            ],
+            "edited": false
+          },
+          {
+            "id": "f3",
+            "front": "How do you minimize Node.js Docker image size using multi-stage builds?",
+            "back": "Use a build stage with development dependencies to compile the application, then copy only the production artifacts and dependencies into a minimal final production image running as a non-root user.",
+            "requirement_ids": [
+              "r3"
+            ],
+            "edited": false
+          },
+          {
+            "id": "f4",
+            "front": "How do you diagnose a memory leak in a Node.js application?",
+            "back": "Take and compare heap snapshots using Chrome DevTools to identify growing closures, uncollected objects, or detached event listeners causing memory accumulation.",
+            "requirement_ids": [
+              "r1"
+            ],
+            "edited": false
+          },
+          {
+            "id": "f5",
+            "front": "How do MongoDB transactions work, and what are their performance trade-offs?",
+            "back": "MongoDB uses WiredTiger snapshot isolation for multi-document transactions. They introduce performance overhead from distributed locking and consensus, making careful schema design preferable when possible.",
+            "requirement_ids": [
+              "r2"
+            ],
+            "edited": false
+          }
+        ],
+        "schedule": {
+          "days_available": 1,
+          "days": [
+            {
+              "day": 1,
+              "focus": "Node.js experience + MongoDB experience",
+              "question_ids": [
+                "q2",
+                "q1",
+                "q4",
+                "q3",
+                "q5"
+              ],
+              "minutes": 180
+            }
+          ]
+        },
+        "coverage": {
+          "uncovered_requirement_ids": [],
+          "passes": 1,
+          "history": [
+            {
+              "pass": 1,
+              "gaps": []
+            }
+          ]
+        },
+        "meta": {
+          "crawl_error": null,
+          "research_skipped": null,
+          "thin_description": true
+        }
+      },
+      "error": null
+    },
+    {
+      "id": "sixty-day",
+      "status": "ok",
+      "kit": {
+        "source": {
+          "company": "example",
+          "company_url": "https://example.com",
+          "role": "Backend Engineer",
+          "location": "",
+          "jd_chars": 120,
+          "researched_at": "2026-10-04T03:08:23.474Z",
+          "pages_used": [
+            "https://example.com/"
+          ]
+        },
+        "company_brief": {
+          "summary": "The example site returned very little readable content, so no company details are stated here.",
+          "what_they_do": "Not available for example. You can write your own notes here.",
+          "sources": [],
+          "edited": false
+        },
+        "role": {
+          "title": "Backend Engineer",
+          "seniority": "",
+          "responsibilities": [],
+          "requirements": [
+            {
+              "id": "r1",
+              "text": "3+ years of Node.js",
+              "kind": "technical",
+              "priority": "must",
+              "topic": "Node.js experience"
+            },
+            {
+              "id": "r2",
+              "text": "Experience with MongoDB",
+              "kind": "technical",
+              "priority": "must",
+              "topic": "MongoDB experience"
+            },
+            {
+              "id": "r3",
+              "text": "Docker",
+              "kind": "technical",
+              "priority": "nice",
+              "topic": "Docker experience"
+            }
+          ]
+        },
+        "questions": [
+          {
+            "id": "q1",
+            "category": "technical",
+            "requirement_ids": [
+              "r1"
+            ],
+            "prompt": "How does the Node.js event loop handle microtasks (like promises) versus macrotasks (like setTimeout), and in what order are they executed during a tick?",
+            "answer_outline": "Explain the phases of the event loop, the distinction between the libuv task queue and the V8 microtask queue, and how process.nextTick and promises take priority before moving to the next timer or I/O phase.",
+            "difficulty": 2,
+            "edited": false
+          },
+          {
+            "id": "q2",
+            "category": "technical",
+            "requirement_ids": [
+              "r1"
+            ],
+            "prompt": "How would you diagnose and resolve a severe memory leak in a long-running Node.js application?",
+            "answer_outline": "Mention taking and comparing heap snapshots using Chrome DevTools or the heapdump module, identifying detached DOM nodes or growing closures, tracking V8 memory usage flags, and analyzing event listener accumulation.",
+            "difficulty": 3,
+            "edited": false
+          },
+          {
+            "id": "q3",
+            "category": "technical",
+            "requirement_ids": [
+              "r2"
+            ],
+            "prompt": "Explain how MongoDB indexes work under the hood (using B-trees) and how you would troubleshoot a slow query that is performing a full collection scan.",
+            "answer_outline": "Discuss B-tree index structures, using explain() to analyze query execution plans, adding compound indexes following the equality, sort, range (ESR) rule, and avoiding common anti-patterns like unindexed regex queries.",
+            "difficulty": 2,
+            "edited": false
+          },
+          {
+            "id": "q4",
+            "category": "technical",
+            "requirement_ids": [
+              "r2"
+            ],
+            "prompt": "How do MongoDB transactions work in a replica set environment, and what are the performance trade-offs of using multi-document transactions compared to proper schema design?",
+            "answer_outline": "Explain the WiredTiger storage engine's snapshot isolation for transactions, the overhead of distributed locks and consensus in replica sets, and why embedding or referencing documents to avoid transactions is often preferred.",
+            "difficulty": 3,
+            "edited": false
+          },
+          {
+            "id": "q5",
+            "category": "technical",
+            "requirement_ids": [
+              "r3"
+            ],
+            "prompt": "If you have experience with Docker, how do you structure a multi-stage Dockerfile for a Node.js application to minimize the final image size and secure dependencies?",
+            "answer_outline": "Describe using a build stage with full devDependencies to compile TypeScript or native modules, and a final production stage that copies only built artifacts and production node_modules, running as a non-root user.",
+            "difficulty": 2,
+            "edited": false
+          }
+        ],
+        "flashcards": [
+          {
+            "id": "f1",
+            "front": "What is the execution order of microtasks and macrotasks in the event loop?",
+            "back": "Microtasks, such as promises and process.nextTick, execute immediately after the current operation finishes and before the event loop moves to the next phase or macrotask.",
+            "requirement_ids": [
+              "r1"
+            ],
+            "edited": false
+          },
+          {
+            "id": "f2",
+            "front": "What data structure do MongoDB indexes use, and how do you troubleshoot slow queries?",
+            "back": "MongoDB uses B-tree structures for indexes. You can troubleshoot slow queries by using the explain() method to detect full collection scans and adding appropriate compound indexes.",
+            "requirement_ids": [
+              "r2"
+            ],
+            "edited": false
+          },
+          {
+            "id": "f3",
+            "front": "How do you minimize Node.js Docker image size using multi-stage builds?",
+            "back": "Use a build stage with development dependencies to compile the application, then copy only the production artifacts and dependencies into a minimal final production image running as a non-root user.",
+            "requirement_ids": [
+              "r3"
+            ],
+            "edited": false
+          },
+          {
+            "id": "f4",
+            "front": "How do you diagnose a memory leak in a Node.js application?",
+            "back": "Take and compare heap snapshots using Chrome DevTools to identify growing closures, uncollected objects, or detached event listeners causing memory accumulation.",
+            "requirement_ids": [
+              "r1"
+            ],
+            "edited": false
+          },
+          {
+            "id": "f5",
+            "front": "How do MongoDB transactions work, and what are their performance trade-offs?",
+            "back": "MongoDB uses WiredTiger snapshot isolation for multi-document transactions. They introduce performance overhead from distributed locking and consensus, making careful schema design preferable when possible.",
+            "requirement_ids": [
+              "r2"
+            ],
+            "edited": false
+          }
+        ],
+        "schedule": {
+          "days_available": 60,
+          "days": [
+            {
+              "day": 1,
+              "focus": "Node.js experience",
+              "question_ids": [
+                "q2"
+              ],
+              "minutes": 45
+            },
+            {
+              "day": 2,
+              "focus": "Node.js experience (part 2)",
+              "question_ids": [
+                "q1"
+              ],
+              "minutes": 30
+            },
+            {
+              "day": 3,
+              "focus": "MongoDB experience",
+              "question_ids": [
+                "q4"
+              ],
+              "minutes": 45
+            },
+            {
+              "day": 4,
+              "focus": "MongoDB experience (part 2)",
+              "question_ids": [
+                "q3"
+              ],
+              "minutes": 30
+            },
+            {
+              "day": 5,
+              "focus": "Docker experience",
+              "question_ids": [
+                "q5"
+              ],
+              "minutes": 30
+            },
+            {
+              "day": 6,
+              "focus": "Review: Node.js experience",
+              "question_ids": [
+                "q2"
+              ],
+              "minutes": 23
+            },
+            {
+              "day": 7,
+              "focus": "Review: Node.js experience (part 2)",
+              "question_ids": [
+                "q1"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 8,
+              "focus": "Review: MongoDB experience",
+              "question_ids": [
+                "q4"
+              ],
+              "minutes": 23
+            },
+            {
+              "day": 9,
+              "focus": "Review: MongoDB experience (part 2)",
+              "question_ids": [
+                "q3"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 10,
+              "focus": "Review: Docker experience",
+              "question_ids": [
+                "q5"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 11,
+              "focus": "Review: Node.js experience (part 3)",
+              "question_ids": [
+                "q2"
+              ],
+              "minutes": 23
+            },
+            {
+              "day": 12,
+              "focus": "Review: Node.js experience (part 4)",
+              "question_ids": [
+                "q1"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 13,
+              "focus": "Review: MongoDB experience (part 3)",
+              "question_ids": [
+                "q4"
+              ],
+              "minutes": 23
+            },
+            {
+              "day": 14,
+              "focus": "Review: MongoDB experience (part 4)",
+              "question_ids": [
+                "q3"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 15,
+              "focus": "Review: Docker experience (part 2)",
+              "question_ids": [
+                "q5"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 16,
+              "focus": "Review: Node.js experience (part 5)",
+              "question_ids": [
+                "q2"
+              ],
+              "minutes": 23
+            },
+            {
+              "day": 17,
+              "focus": "Review: Node.js experience (part 6)",
+              "question_ids": [
+                "q1"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 18,
+              "focus": "Review: MongoDB experience (part 5)",
+              "question_ids": [
+                "q4"
+              ],
+              "minutes": 23
+            },
+            {
+              "day": 19,
+              "focus": "Review: MongoDB experience (part 6)",
+              "question_ids": [
+                "q3"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 20,
+              "focus": "Review: Docker experience (part 3)",
+              "question_ids": [
+                "q5"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 21,
+              "focus": "Review: Node.js experience (part 7)",
+              "question_ids": [
+                "q2"
+              ],
+              "minutes": 23
+            },
+            {
+              "day": 22,
+              "focus": "Review: Node.js experience (part 8)",
+              "question_ids": [
+                "q1"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 23,
+              "focus": "Review: MongoDB experience (part 7)",
+              "question_ids": [
+                "q4"
+              ],
+              "minutes": 23
+            },
+            {
+              "day": 24,
+              "focus": "Review: MongoDB experience (part 8)",
+              "question_ids": [
+                "q3"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 25,
+              "focus": "Review: Docker experience (part 4)",
+              "question_ids": [
+                "q5"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 26,
+              "focus": "Review: Node.js experience (part 9)",
+              "question_ids": [
+                "q2"
+              ],
+              "minutes": 23
+            },
+            {
+              "day": 27,
+              "focus": "Review: Node.js experience (part 10)",
+              "question_ids": [
+                "q1"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 28,
+              "focus": "Review: MongoDB experience (part 9)",
+              "question_ids": [
+                "q4"
+              ],
+              "minutes": 23
+            },
+            {
+              "day": 29,
+              "focus": "Review: MongoDB experience (part 10)",
+              "question_ids": [
+                "q3"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 30,
+              "focus": "Review: Docker experience (part 5)",
+              "question_ids": [
+                "q5"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 31,
+              "focus": "Review: Node.js experience (part 11)",
+              "question_ids": [
+                "q2"
+              ],
+              "minutes": 23
+            },
+            {
+              "day": 32,
+              "focus": "Review: Node.js experience (part 12)",
+              "question_ids": [
+                "q1"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 33,
+              "focus": "Review: MongoDB experience (part 11)",
+              "question_ids": [
+                "q4"
+              ],
+              "minutes": 23
+            },
+            {
+              "day": 34,
+              "focus": "Review: MongoDB experience (part 12)",
+              "question_ids": [
+                "q3"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 35,
+              "focus": "Review: Docker experience (part 6)",
+              "question_ids": [
+                "q5"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 36,
+              "focus": "Review: Node.js experience (part 13)",
+              "question_ids": [
+                "q2"
+              ],
+              "minutes": 23
+            },
+            {
+              "day": 37,
+              "focus": "Review: Node.js experience (part 14)",
+              "question_ids": [
+                "q1"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 38,
+              "focus": "Review: MongoDB experience (part 13)",
+              "question_ids": [
+                "q4"
+              ],
+              "minutes": 23
+            },
+            {
+              "day": 39,
+              "focus": "Review: MongoDB experience (part 14)",
+              "question_ids": [
+                "q3"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 40,
+              "focus": "Review: Docker experience (part 7)",
+              "question_ids": [
+                "q5"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 41,
+              "focus": "Review: Node.js experience (part 15)",
+              "question_ids": [
+                "q2"
+              ],
+              "minutes": 23
+            },
+            {
+              "day": 42,
+              "focus": "Review: Node.js experience (part 16)",
+              "question_ids": [
+                "q1"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 43,
+              "focus": "Review: MongoDB experience (part 15)",
+              "question_ids": [
+                "q4"
+              ],
+              "minutes": 23
+            },
+            {
+              "day": 44,
+              "focus": "Review: MongoDB experience (part 16)",
+              "question_ids": [
+                "q3"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 45,
+              "focus": "Review: Docker experience (part 8)",
+              "question_ids": [
+                "q5"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 46,
+              "focus": "Review: Node.js experience (part 17)",
+              "question_ids": [
+                "q2"
+              ],
+              "minutes": 23
+            },
+            {
+              "day": 47,
+              "focus": "Review: Node.js experience (part 18)",
+              "question_ids": [
+                "q1"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 48,
+              "focus": "Review: MongoDB experience (part 17)",
+              "question_ids": [
+                "q4"
+              ],
+              "minutes": 23
+            },
+            {
+              "day": 49,
+              "focus": "Review: MongoDB experience (part 18)",
+              "question_ids": [
+                "q3"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 50,
+              "focus": "Review: Docker experience (part 9)",
+              "question_ids": [
+                "q5"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 51,
+              "focus": "Review: Node.js experience (part 19)",
+              "question_ids": [
+                "q2"
+              ],
+              "minutes": 23
+            },
+            {
+              "day": 52,
+              "focus": "Review: Node.js experience (part 20)",
+              "question_ids": [
+                "q1"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 53,
+              "focus": "Review: MongoDB experience (part 19)",
+              "question_ids": [
+                "q4"
+              ],
+              "minutes": 23
+            },
+            {
+              "day": 54,
+              "focus": "Review: MongoDB experience (part 20)",
+              "question_ids": [
+                "q3"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 55,
+              "focus": "Review: Docker experience (part 10)",
+              "question_ids": [
+                "q5"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 56,
+              "focus": "Review: Node.js experience (part 21)",
+              "question_ids": [
+                "q2"
+              ],
+              "minutes": 23
+            },
+            {
+              "day": 57,
+              "focus": "Review: Node.js experience (part 22)",
+              "question_ids": [
+                "q1"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 58,
+              "focus": "Review: MongoDB experience (part 21)",
+              "question_ids": [
+                "q4"
+              ],
+              "minutes": 23
+            },
+            {
+              "day": 59,
+              "focus": "Review: MongoDB experience (part 22)",
+              "question_ids": [
+                "q3"
+              ],
+              "minutes": 15
+            },
+            {
+              "day": 60,
+              "focus": "Review: Docker experience (part 11)",
+              "question_ids": [
+                "q5"
+              ],
+              "minutes": 15
+            }
+          ]
+        },
+        "coverage": {
+          "uncovered_requirement_ids": [],
+          "passes": 1,
+          "history": [
+            {
+              "pass": 1,
+              "gaps": []
+            }
+          ]
+        },
+        "meta": {
+          "crawl_error": null,
+          "research_skipped": null,
+          "thin_description": true
+        }
+      },
+      "error": null
+    }
+  ]
+}

@@ -1,7 +1,32 @@
 [
-  {"id":"edge-stub","jd":"Backend dev needed.\nMust know Node.","company_url":"http://127.0.0.1:8099/","days":3},
-  {"id":"edge-nohiring","jd":"Senior Backend Engineer\n\nWe are looking for an engineer to build forecasting APIs.\n\nRequired:\n- 5+ years of Node.js experience\n- Strong knowledge of MongoDB\n- Experience designing REST APIs\n- Comfortable mentoring junior engineers\n\nNice to have:\n- Experience with Docker","company_url":"http://127.0.0.1:8098/","days":5},
-  {"id":"edge-badurl","jd":"Senior Backend Engineer\n\nWe are looking for an engineer to build forecasting APIs.\n\nRequired:\n- 5+ years of Node.js experience\n- Strong knowledge of MongoDB\n- Experience designing REST APIs\n- Comfortable mentoring junior engineers\n\nNice to have:\n- Experience with Docker","company_url":"http://127.0.0.1:1/","days":5},
-  {"id":"edge-dup-1","jd":"Senior Backend Engineer\n\nWe are building payment APIs.\n\nRequired:\n- 5+ years of Node.js experience\n- Strong knowledge of PostgreSQL\n- Experience designing system architecture\n- Comfortable mentoring junior engineers\n\nNice to have:\n- Experience with Kubernetes","company_url":"http://127.0.0.1:8099/","days":5},
-  {"id":"edge-dup-2","jd":"Senior Backend Engineer\n\nWe are building payment APIs.\n\nRequired:\n- 5+ years of Node.js experience\n- Strong knowledge of PostgreSQL\n- Experience designing system architecture\n- Comfortable mentoring junior engineers\n\nNice to have:\n- Experience with Kubernetes","company_url":"http://127.0.0.1:8099/","days":5}
+  {
+    "id": "edge-stub",
+    "jd": "Backend Engineer\n\nWe need a developer to join our team.",
+    "company_url": "https://about.gitlab.com/",
+    "days": 3
+  },
+  {
+    "id": "edge-nohiring",
+    "jd": "Senior Backend Engineer\n\nRequirements:\n- 5 years of experience with Node.js (required)\n- Strong knowledge of MongoDB or another NoSQL database (required)\n- Experience with Docker and Kubernetes (nice to have)\n\nResponsibilities:\n- Design and build backend APIs\n- Mentor junior engineers",
+    "company_url": "https://example.com/",
+    "days": 5
+  },
+  {
+    "id": "edge-badurl",
+    "jd": "Senior Backend Engineer\n\nRequirements:\n- 5 years of experience with Node.js (required)\n- Strong knowledge of MongoDB (required)",
+    "company_url": "http://not-a-real-site.invalid/",
+    "days": 5
+  },
+  {
+    "id": "edge-dup-1",
+    "jd": "Senior Backend Engineer\n\nRequirements:\n- 5 years of experience with Node.js (required)\n- Strong knowledge of MongoDB or another NoSQL database (required)\n- Experience with Docker and Kubernetes (nice to have)\n\nResponsibilities:\n- Build scalable services\n- Mentor junior engineers",
+    "company_url": "https://about.gitlab.com/",
+    "days": 5
+  },
+  {
+    "id": "edge-dup-2",
+    "jd": "Senior Backend Engineer\n\nRequirements:\n- 5 years of experience with Node.js (required)\n- Strong knowledge of MongoDB or another NoSQL database (required)\n- Experience with Docker and Kubernetes (nice to have)\n\nResponsibilities:\n- Build scalable services\n- Mentor junior engineers",
+    "company_url": "https://about.gitlab.com/",
+    "days": 5
+  }
 ]
