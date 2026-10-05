@@ -3,6 +3,16 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import PracticeMode from "../../components/PracticeMode";
+const STEP_LABELS: Record<string, string> = {
+  queued: "Queued",
+  researching: "Researching the company",
+  extracting: "Extracting requirements",
+  generating: "Generating questions",
+  coverage: "Checking coverage",
+  scheduling: "Building your schedule",
+};
+const stepLabel = (s: string) =>
+  STEP_LABELS[s] || s.replace(/[_-]/g, " ");
 
 type Question = {
   id: string;
@@ -336,7 +346,7 @@ export default function KitPage() {
     return (
       <div className="max-w-2xl mx-auto p-6">
         <h1 className="text-2xl font-semibold mb-4">Generating your kit...</h1>
-        <p className={mutedText}>Current step: {kit.status}</p>
+        <p className={mutedText} aria-live="polite">Current step: {stepLabel(kit.status)}...</p>
         <div className="mt-4 h-2 w-full bg-gray-200 rounded-full overflow-hidden">
           <div className="h-full bg-blue-600 animate-pulse w-2/3" />
         </div>
@@ -350,6 +360,7 @@ export default function KitPage() {
       <div className="max-w-2xl mx-auto p-6">
         <h1 className="text-2xl font-semibold mb-4 text-red-600">Generation failed</h1>
         <p className={bodyText}>{kit.error?.message || "Unknown error"}</p>
+        <a href="/kits/new" className="inline-block mt-4 rounded-md border px-4 py-2 font-medium">Try again with a new kit</a>
       </div>
     );
   }
