@@ -118,7 +118,6 @@ function makeLabelsDistinct(days, questions) {
   for (const d of days) {
     if (counts.get(d.focus) > 1) {
       const first = qById.get(d.question_ids[0]);
-      if (first?.prompt) d.focus = `${d.focus}: ${shorten(first.prompt, 40)}`;
     }
   }
 
