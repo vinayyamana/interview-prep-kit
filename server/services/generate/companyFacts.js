@@ -36,6 +36,7 @@ const norm = (s) =>
 // A value is kept only if the company's text really contains it (code decides, not the model).
 function keepValue(value, source) {
   const v = norm(value);
+  if (v === 'credit') return false;
   return v.length >= 3 && v.length <= 60 && source.includes(v);
 }
 
