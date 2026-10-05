@@ -93,7 +93,7 @@ function buildResearch(crawl, discussion = []) {
       .map((p) => (p.text || "").slice(0, 2000))
       .join("\n\n")
       .slice(0, 8000),
-    hiringText: hiringPages.map((p) => p.text.slice(0, 3000)).join("\n\n").slice(0, 6000),
+    hiringText: hiringPages.map((p) => p.text.slice(0, 6000)).join("\n\n").slice(0, 12000),
     discussion: discussion.map((d) => d.snippet).slice(0, 5),
   };
 }

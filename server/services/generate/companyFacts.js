@@ -46,13 +46,11 @@ function keepStage(stage, source) {
   return s.split(" ").filter((w) => w.length > 4).some((w) => source.includes(w));
 }
 
-function collectText(research = {}) {
-  return [research.companyText, research.siteText, research.hiringText]
-    .filter(Boolean)
-    .join("\n\n")
-    .slice(0, MAX_TEXT_CHARS);
+  function collectText(research = {}) {
+  const hiring = (research.hiringText || "").slice(0, 6000);
+  const site = [research.companyText, research.siteText].filter(Boolean).join("\n\n").slice(0, 3000);
+  return [hiring, site].filter(Boolean).join("\n\n").slice(0, MAX_TEXT_CHARS);
 }
-
 async function getCompanyFacts(research) {
   const text = collectText(research);
   if (text.trim().length < 80) return empty();
