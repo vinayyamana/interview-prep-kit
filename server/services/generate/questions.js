@@ -139,7 +139,8 @@ function skipReason(category, role, research, eligible) {
   if (category === "system-design") {
     const senior = /senior|lead|staff|principal|architect/i.test(role.seniority || "");
     const mentioned = /system design|architecture|take[- ]home|assignment/i.test(research.hiringText || "");
-    if (!senior && !mentioned) return "NOT_RELEVANT_FOR_ROLE";
+    const inRequirements = eligible.some((r) => /system design|architecture|distributed|scalab|high[- ]traffic|high[- ]load|microservice/i.test(r.text || ""));
+    if (!senior && !mentioned && !inRequirements) return "NOT_RELEVANT_FOR_ROLE";
   }
   if (category === "company-fit" && !research.companyText && !research.siteText) {
     return "NO_COMPANY_INFO";
