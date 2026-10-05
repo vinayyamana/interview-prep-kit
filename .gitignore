@@ -13,3 +13,8 @@ days-cases.json
 edge-cases.json
 kits-days.json
 test-sites/
+
+cases.json
+kits-output.json
+check.js
+show.js
