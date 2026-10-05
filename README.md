@@ -1,28 +1,48 @@
 # AI Interview Prep Kit
 
-Turns a job description + company URL into a prep kit (brief, requirements, questions, flashcards, schedule, practice mode).
+Turns a job description + company URL into an interview prep kit:
+company brief, role breakdown, questions, flashcards, study schedule.
+
+**Live:** <frontend-url> | **API:** <backend-url>
 
 ## Stack
-Next.js + Tailwind (client/), Node + Express (server/), MongoDB Atlas, Gemini ([model name]).
-
-## Live
-- App: https://interview-prep-api-fawn.vercel.app
-- API: [Render URL]
+Next.js + Tailwind, Node.js + Express, MongoDB, Gemini (<model name>).
 
 ## Setup
-cd server && npm install && cp .env.example .env
-Batch: npm run evaluate -- --input cases.json --output kits.json
-Env: MONGO_URI, SESSION_SECRET, CLIENT_URL, GEMINI_API_KEY, GEMINI_MODEL
+npm install --prefix server
+npm install --prefix client
+Copy .env.example to server/.env and fill in the keys.
+
+## Batch command
+npm run evaluate -- --input cases.json --output kits.json
 
 ## Pipeline
-extract requirements -> crawl site (ranked links, robots.txt) -> public discussion search -> questions per category -> coverage check (code) -> gap-closing (max 2 passes) -> flashcards -> schedule (code) -> kit validation (zod).
+1. Extract requirements (must/nice, stable ids) from the JD
+2. Crawl the company site, rank links, fetch hiring/about pages
+3. Search public discussion of the interview process
+4. Generate questions per category (separate calls per category)
+5. Coverage check in code; uncovered requirements get a gap-fill pass
+6. Schedule built in code, not by the model
 
-## Key decisions
-- Coverage and schedule are plain code, not LLM.
-- 2 gap passes: one retry fixes most misses; a third burns free-tier tokens.
-- Edited/pinned state: each item has an `edited` flag; regenerating a category keeps edited items.
-- LLM client: pacing, honors retry-after, exponential backoff, JSON retry.
-- Thin JD gives a thin kit; no site info gives an honest brief.
+## Coverage passes
+First draft, then a code-side check. Any requirement without a
+question triggers a gap-fill generation, then it is re-checked.
+
+## Schedule
+Must-have and hardest first, exactly N days. Spare days become review days.
+
+## Edited / manual state
+Each question is generated, edited, or manual. Regenerating a category
+replaces only generated ones, so edits and hand-added questions survive.
+
+## Sources and safety
+Company about/careers pages from the URL given. robots.txt respected.
+Private and loopback addresses rejected. Fetched text is treated as data.
+
+## Edge cases
+Invalid URL or no pages: kit still produced with an honest brief.
+Thin JD: thin kit. LLM rate limits: retry with backoff.
 
 ## Known limitations
-Free Render sleeps (first request ~50s). [add yours]
+Interview stages hosted on a different subdomain (e.g. GitLab handbook)
+are not crawled, so hiring stages may be empty.
