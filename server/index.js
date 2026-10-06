@@ -1,3 +1,4 @@
+const cors = require("cors");
 const express = require('express');
 const cors = require("cors");
 const mongoose = require('mongoose');
@@ -7,6 +8,11 @@ const { MongoStore } = require("connect-mongo");
 const authRoutes = require('./authRoutes');
 
 const app = express();
+   app.use(cors({
+     origin: "https://interview-prep-kit-three.vercel.app",
+     credentials: true
+   }));
+
 
 // Needed so `secure` cookies work behind Render/Railway/Vercel's proxy
 app.set('trust proxy', 1);
