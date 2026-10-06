@@ -23,7 +23,7 @@ const outputPath = getArg('--output');
 function loadCases(filePath) {
   let raw;
   try {
-    raw = fs.readFileSync(path.resolve(baseDir, filePath), 'utf-8');
+    raw = fs.readFileSync(path.resolve(baseDir, filePath), 'utf-8').replace(/^\uFEFF/, '');
   } catch (err) {
     console.error(`Could not read input file at ${filePath}:`, err.message);
     process.exit(1);

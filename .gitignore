@@ -21,3 +21,4 @@ show.js
 kits*.json
 out.json
 .env
+kits-check*.json
