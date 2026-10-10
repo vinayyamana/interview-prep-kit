@@ -225,8 +225,12 @@ function cleanRequirements(items, jd) {
 /* ---------- main ---------- */
 
 function thinReason(requirements, jd) {
-  if (jd.trim().length < 250) return "The job description is very short, so few requirements could be extracted.";
-  if (requirements.length < 3) return "The job description states very few explicit requirements.";
+  if (requirements.length === 0) {
+    return "The job description is too short to extract any requirements.";
+  }
+  if (requirements.length < 3 && jd.trim().length < 250) {
+    return "The job description states very few explicit requirements.";
+  }
   return null;
 }
 

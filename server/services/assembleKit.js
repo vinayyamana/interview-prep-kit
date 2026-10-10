@@ -89,6 +89,14 @@ async function assembleKit({ jd, companyUrl, days, onProgress = () => {} }) {
   if (!urlError) {
     try {
       crawl = await crawlSite(companyUrl);
+      if (crawl.pages.length === 0) {
+        const first = (crawl.skipped || [])[0];
+        const why =
+          typeof first === "string"
+            ? first
+            : first && (first.reason || first.error || first.url);
+        crawlError = `No pages could be retrieved${why ? ` (${why})` : ""}.`;
+      }
     } catch (err) {
       crawlError = err.message;
     }
@@ -201,6 +209,8 @@ async function assembleKit({ jd, companyUrl, days, onProgress = () => {} }) {
     meta: {
       crawl_error: crawlError,
       research_skipped: discussion.note,
+      discussion_searched: !isLocalUrl(companyUrl) && !urlError,
+      discussion_found: discussionResults.length,
       thin_description: role.thin,
       brief_fallback: briefFallback,
       flashcards_error: flashcardsError,
