@@ -1,0 +1,310 @@
+{
+  "version": "1.0",
+  "generated_at": "2026-10-10T05:36:15Z",
+  "kits": [
+    {
+      "id": "gitlab-01",
+      "status": "ok",
+      "kit": {
+        "source": {
+          "company": "gitlab",
+          "company_url": "https://about.gitlab.com",
+          "role": "Backend Engineer",
+          "location": "",
+          "jd_chars": 118,
+          "researched_at": "2026-10-10T05:36:15.741Z",
+          "pages_used": [
+            "https://about.gitlab.com/",
+            "https://about.gitlab.com/blog/optimize-with-open-weight-models/",
+            "https://about.gitlab.com/jobs/",
+            "https://about.gitlab.com/jobs/ai-interview-process/",
+            "https://about.gitlab.com/jobs/accessibility/",
+            "https://about.gitlab.com/jobs/all-jobs/",
+            "https://about.gitlab.com/company/contact/",
+            "https://about.gitlab.com/blog/new-mcp-tools-for-automation/"
+          ]
+        },
+        "company_brief": {
+          "summary": "GitLab is an intelligent orchestration platform and enterprise platform for software creation used by more than 100,000 organizations. It is an all-remote company that operates globally with a handbook-first approach.",
+          "what_they_do": "GitLab builds a DevSecOps platform that enables teams to plan, source control, build, secure, and deploy software in one single application. The platform incorporates AI orchestration tools like GitLab Duo to help teams and AI agents turn issues into merge requests, remediate vulnerabilities, and review code. It provides built-in scanning, security policies, approvals, and automated audit trails tailored to various industry requirements.",
+          "sources": [
+            "https://about.gitlab.com/",
+            "https://about.gitlab.com/jobs/",
+            "https://about.gitlab.com/jobs/ai-interview-process/",
+            "https://about.gitlab.com/jobs/accessibility/"
+          ],
+          "edited": false
+        },
+        "role": {
+          "title": "Backend Engineer",
+          "seniority": "Senior",
+          "responsibilities": [
+            "Mentor juniors"
+          ],
+          "requirements": [
+            {
+              "id": "r1",
+              "text": "5+ years Node.js",
+              "kind": "technical",
+              "priority": "must",
+              "topic": "Node.js experience"
+            },
+            {
+              "id": "r2",
+              "text": "MongoDB",
+              "kind": "technical",
+              "priority": "must",
+              "topic": "MongoDB database"
+            },
+            {
+              "id": "r3",
+              "text": "Mentor juniors",
+              "kind": "behavioural",
+              "priority": "must",
+              "topic": "Junior mentoring"
+            },
+            {
+              "id": "r4",
+              "text": "Docker and Kubernetes",
+              "kind": "technical",
+              "priority": "nice",
+              "topic": "Container orchestration"
+            }
+          ]
+        },
+        "questions": [
+          {
+            "id": "q1",
+            "category": "technical",
+            "requirement_ids": [
+              "r1"
+            ],
+            "prompt": "How does Node.js handle asynchronous operations under the hood using the libuv event loop, and what is the difference in execution order between process.nextTick() and setImmediate()?",
+            "answer_outline": "Explain the phases of the libuv event loop (timers, poll, check, etc.), how the call stack interacts with the callback queue, microtasks vs macrotasks, and specifically clarify that process.nextTick() queues a microtask that runs immediately after the current operation finishes execution, whereas setImmediate() queues a callback for the check phase in the next iteration of the loop.",
+            "difficulty": 2,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "q2",
+            "category": "technical",
+            "requirement_ids": [
+              "r1"
+            ],
+            "prompt": "What causes memory leaks in a long-running Node.js application, and how would you use heap snapshots and tools like clinic.js or Chrome DevTools to diagnose and resolve them?",
+            "answer_outline": "Discuss common sources of memory leaks such as global variable accumulation, forgotten event listeners, closures holding onto large scopes, and caching strategies without eviction. Explain the process of taking baseline and comparative heap snapshots in Chrome DevTools or using clinic.js, identifying detached DOM nodes or uncollected constructor retainers, and tracing allocation paths.",
+            "difficulty": 3,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "q3",
+            "category": "technical",
+            "requirement_ids": [
+              "r2"
+            ],
+            "prompt": "How do MongoDB indexes impact write performance and read scalability, and how would you analyze a slow query using explain()?",
+            "answer_outline": "Explain the B-tree data structure underlying MongoDB indexes, how indexes speed up query filtering and sorting at the cost of slower write operations (inserts/updates due to index maintenance), and how to interpret the output of executionStats from the explain() method to spot COLLSCAN vs IXSCAN.",
+            "difficulty": 2,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "q4",
+            "category": "technical",
+            "requirement_ids": [
+              "r4"
+            ],
+            "prompt": "How do Kubernetes liveness, readiness, and startup probes function to manage container health and traffic routing, and what are the failure mode trade-offs if they are misconfigured?",
+            "answer_outline": "Describe the distinct purposes of startup probes (for slow-starting containers), liveness probes (to restart dead or deadlocked containers), and readiness probes (to control traffic flow from services). Discuss trade-offs like cascading failures if liveness probes are too aggressive or traffic hitting unready pods if readiness is misconfigured.",
+            "difficulty": 2,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "q5",
+            "category": "behavioural",
+            "requirement_ids": [
+              "r3"
+            ],
+            "prompt": "Describe a time when you had to mentor a junior engineer who was struggling to grasp complex backend concepts or codebase architecture. What specific steps did you take to guide them, how did you tailor your approach to their learning style, and what was the outcome for their growth and productivity?",
+            "answer_outline": "Structure the story using the STAR method: detail the specific situation and the junior's struggle, explain the actions taken (such as pairing sessions, breaking down tasks into smaller milestones, and encouraging autonomy), and highlight the measurable impact on the engineer's capability and confidence.",
+            "difficulty": 2,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "q6",
+            "category": "behavioural",
+            "requirement_ids": [
+              "r3"
+            ],
+            "prompt": "Tell me about a time when you took the initiative to establish a mentorship or technical guidance process for junior developers on your team outside of formal programs. How did you identify the need, what did you implement, and how did you measure its success over time?",
+            "answer_outline": "Describe the context of a gap in team onboarding or skill development, detail the proactive steps taken to create resources or regular syncs, and share the positive results regarding team velocity and junior retention.",
+            "difficulty": 3,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "q7",
+            "category": "system-design",
+            "requirement_ids": [
+              "r1",
+              "r2"
+            ],
+            "prompt": "Design a high-throughput microservices architecture using Node.js that ingests millions of telemetry events per day and persists them into a MongoDB cluster. Walk through the component layout, data flow, backpressure handling in Node.js, and how you would design the MongoDB schema and sharding strategy to handle high-velocity writes and time-series queries.",
+            "answer_outline": "Discuss clustering/worker threads in Node.js, stream backpressure handling, connection pooling, MongoDB document design (avoiding unbounded arrays), sharding key selection based on cardinality and write distribution, and handling failure modes like DB downtime.",
+            "difficulty": 3,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "q8",
+            "category": "company-fit",
+            "requirement_ids": [
+              "r3"
+            ],
+            "prompt": "The company lists \"Speed with Quality\" as one of its values. Describe a time you acted on this in your work, and what came of it.",
+            "answer_outline": "Pick one real example that shows \"Speed with Quality\" in practice: the situation, what you did, and the result. Then connect it to how you would work in this role.",
+            "difficulty": 2,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          }
+        ],
+        "flashcards": [
+          {
+            "id": "f1",
+            "front": "What is the execution order difference between process.nextTick() and setImmediate()?",
+            "back": "process.nextTick() queues a microtask that executes immediately after the current operation finishes. setImmediate() queues a macrotask for the check phase of the next event loop iteration.",
+            "requirement_ids": [
+              "r1"
+            ],
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "f2",
+            "front": "How do indexes impact MongoDB read and write performance?",
+            "back": "Indexes speed up read queries and sorting operations by using a B-tree structure, but they slow down writes because the index must be updated on every insert or update.",
+            "requirement_ids": [
+              "r2"
+            ],
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "f3",
+            "front": "What is the purpose of a Kubernetes readiness probe?",
+            "back": "A readiness probe determines when a container is ready to accept network traffic. If it fails, the pod is removed from service endpoints.",
+            "requirement_ids": [
+              "r4"
+            ],
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "f4",
+            "front": "What are two common causes of memory leaks in Node.js applications?",
+            "back": "Common causes include unintentional global variable accumulation, unremoved event listeners, closures retaining large scopes, and unevicted caches.",
+            "requirement_ids": [
+              "r1"
+            ],
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "f5",
+            "front": "How do you handle backpressure in Node.js streaming architectures?",
+            "back": "You handle backpressure by using the pipe() method or checking the return value of write(); if it returns false, you wait for the drain event before writing more data.",
+            "requirement_ids": [
+              "r1",
+              "r2"
+            ],
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          }
+        ],
+        "schedule": {
+          "days_available": 5,
+          "days": [
+            {
+              "day": 1,
+              "focus": "Node.js experience + Behavioural: Junior mentoring",
+              "question_ids": [
+                "q2",
+                "q6"
+              ],
+              "minutes": 90
+            },
+            {
+              "day": 2,
+              "focus": "MongoDB database + System design: Node.js experience",
+              "question_ids": [
+                "q3",
+                "q7"
+              ],
+              "minutes": 75
+            },
+            {
+              "day": 3,
+              "focus": "Behavioural: Junior mentoring + Node.js experience",
+              "question_ids": [
+                "q5",
+                "q1"
+              ],
+              "minutes": 60
+            },
+            {
+              "day": 4,
+              "focus": "Company fit",
+              "question_ids": [
+                "q8"
+              ],
+              "minutes": 30
+            },
+            {
+              "day": 5,
+              "focus": "Container orchestration",
+              "question_ids": [
+                "q4"
+              ],
+              "minutes": 30
+            }
+          ]
+        },
+        "coverage": {
+          "uncovered_requirement_ids": [],
+          "passes": 1,
+          "history": [
+            {
+              "pass": 1,
+              "gaps": []
+            }
+          ]
+        },
+        "meta": {
+          "crawl_error": null,
+          "research_skipped": null,
+          "thin_description": true,
+          "brief_fallback": null,
+          "flashcards_error": null,
+          "fallback_questions": []
+        }
+      },
+      "error": null
+    }
+  ]
+}

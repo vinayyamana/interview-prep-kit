@@ -30,7 +30,8 @@ async function llmStep(fn) {
 
 // ---- honest fallbacks (no fabrication) ----
 function honestBrief({ companyName, crawlError, pagesUsed, reason }) {
-  const name = companyName || "this company";
+  const BAD_NAME = /^(localhost|nothing|\d+(\.\d+){3})$/i;
+  const name = companyName && !BAD_NAME.test(companyName) ? companyName : "this company";
   const why =
     reason ||
     (crawlError
