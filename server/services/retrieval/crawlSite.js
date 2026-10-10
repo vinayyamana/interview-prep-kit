@@ -19,7 +19,8 @@ const KEYWORDS = [
 // Tested against the URL *path only*. Testing the full URL made companies with
 // "login", "cart" or "cookie" in their domain lose every link.
 const NEGATIVE =
-  /(^|[\/_-])(log-?in|sign-?(in|up)|cart|privacy|terms|cookies?)([\/_.-]|$)|\.(pdf|zip|png|jpe?g|gif|svg|css|js)$/i;
+  /(^|[\/_-])(log-?in|sign-?(in|up)|cart|privacy|terms|cookies?|edit|ide|blob|raw|commits?|merge_requests|issues|compare|tree)([\/_.-]|$)|\.(pdf|zip|png|jpe?g|gif|svg|css|js)$/i;
+  
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
