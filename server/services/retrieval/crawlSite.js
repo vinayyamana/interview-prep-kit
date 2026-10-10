@@ -1,9 +1,11 @@
+const robotsParser = require("robots-parser");
 const { fetchPage } = require("./fetchPage");
+const { assertSafeUrl } = require("../security/validateUrl");
 
 const MAX_PAGES = 8;
 const DELAY_MS = 500;
-const FIRST_PAGE_RETRIES = 3;
 const UA = "Mozilla/5.0 (compatible; InterviewPrepKitBot/1.0)";
+const BOT = "InterviewPrepKitBot"; // token matched against robots.txt User-agent lines
 
 // [pattern, points]: higher score = more likely to describe hiring
 const KEYWORDS = [
@@ -13,7 +15,11 @@ const KEYWORDS = [
   [/engineering|tech|team|about|company|who[-_ ]we[-_ ]are|mission/i, 3],
   [/blog|press|news/i, 1],
 ];
-const NEGATIVE = /login|signin|sign-in|signup|cart|privacy|terms|cookie|\.(pdf|zip|png|jpe?g|gif|svg|css|js)(\?|$)/i;
+
+// Tested against the URL *path only*. Testing the full URL made companies with
+// "login", "cart" or "cookie" in their domain lose every link.
+const NEGATIVE =
+  /(^|[\/_-])(log-?in|sign-?(in|up)|cart|privacy|terms|cookies?)([\/_.-]|$)|\.(pdf|zip|png|jpe?g|gif|svg|css|js)$/i;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -23,48 +29,39 @@ function describeError(err) {
 }
 
 function scoreLink(link) {
-  if (NEGATIVE.test(link.url)) return -1;
-  const target = `${new URL(link.url).pathname} ${link.text}`;
+  const { pathname } = new URL(link.url);
+  if (NEGATIVE.test(pathname)) return -1;
+  const target = `${pathname} ${link.text}`;
   let score = 0;
   for (const [re, pts] of KEYWORDS) if (re.test(target)) score += pts;
   return score;
 }
 
+// robots.txt is fetched only after the origin passes URL validation.
+// null = no usable robots.txt = no restrictions.
 async function loadRobots(origin) {
   try {
-    const res = await fetch(new URL("/robots.txt", origin), {
+    await assertSafeUrl(origin);
+    const robotsUrl = new URL("/robots.txt", origin).href;
+    const res = await fetch(robotsUrl, {
       headers: { "User-Agent": UA },
+      redirect: "manual",
       signal: AbortSignal.timeout(5000),
     });
-    if (!res.ok) return [];
-    const disallow = [];
-    let applies = false;
-    for (const raw of (await res.text()).split(/\r?\n/)) {
-      const line = raw.split("#")[0].trim();
-      const [k, ...rest] = line.split(":");
-      const key = k.toLowerCase();
-      const val = rest.join(":").trim();
-      if (key === "user-agent") applies = val === "*" || UA.toLowerCase().includes(val.toLowerCase());
-      else if (key === "disallow" && applies && val) disallow.push(val);
-    }
-    return disallow;
+    return res.ok ? robotsParser(robotsUrl, await res.text()) : null;
   } catch {
-    return []; // robots.txt unreachable -> treat as no restrictions
+    return null;
   }
 }
 
-// Retry the start page with backoff: one slow response should not fail the case.
-async function fetchFirstPage(url) {
-  let lastErr;
-  for (let attempt = 1; attempt <= FIRST_PAGE_RETRIES; attempt++) {
-    try {
-      return await fetchPage(url);
-    } catch (err) {
-      lastErr = err;
-      if (attempt < FIRST_PAGE_RETRIES) await sleep(1000 * 2 ** (attempt - 1));
-    }
-  }
-  throw lastErr;
+// Same site = same origin, or (for real domains only) same registrable domain,
+// so a handbook on a sibling subdomain is reachable. Naive for .co.uk-style domains.
+const isLocalHost = (h) => h === "localhost" || /^[\d.]+$/.test(h) || h.includes(":");
+const siteKey = (h) => h.split(".").slice(-2).join(".");
+function sameSite(a, b) {
+  if (a.origin === b.origin) return true;
+  if (isLocalHost(a.hostname) || isLocalHost(b.hostname)) return false;
+  return siteKey(a.hostname) === siteKey(b.hostname);
 }
 
 // An unreachable company is a research gap, not a fatal error:
@@ -86,31 +83,41 @@ async function crawlSite(startUrl) {
     return unreachableResult(startUrl, "INVALID_URL");
   }
 
-  const disallow = await loadRobots(start.origin);
+  // robots.txt differs per origin, so cache one parser per origin.
+  const robotsCache = new Map();
+  const allowed = async (url) => {
+    const { origin } = new URL(url);
+    if (!robotsCache.has(origin)) robotsCache.set(origin, await loadRobots(origin));
+    const robots = robotsCache.get(origin);
+    return !robots || robots.isAllowed(url, BOT) !== false;
+  };
+
+  if (!(await allowed(start.href))) {
+    return unreachableResult(start.href, "ROBOTS_DISALLOWED");
+  }
+
   const pages = [];
   const skipped = [];
   const seen = new Set([start.href]);
 
-  if (disallow.some((p) => start.pathname.startsWith(p))) {
-    return unreachableResult(start.href, "ROBOTS_DISALLOWED");
-  }
-
+  // fetchPage already retries with backoff, so no extra retry layer here.
   let first;
   try {
-    first = await fetchFirstPage(start.href);
+    first = await fetchPage(start.href);
   } catch (err) {
-    return unreachableResult(
-      start.href,
-      `${describeError(err)} (after ${FIRST_PAGE_RETRIES} tries)`
-    );
+    return unreachableResult(start.href, describeError(err));
   }
   pages.push(first);
+  seen.add(first.url);
+
+  // Compare against the final URL: the start page may have redirected (http -> https, www).
+  const base = new URL(first.url);
 
   const queue = [];
   const enqueue = (page) => {
     for (const link of page.links) {
       const u = new URL(link.url);
-      if (u.origin !== start.origin || seen.has(link.url)) continue;
+      if (!sameSite(u, base) || seen.has(link.url)) continue;
       const score = scoreLink(link);
       if (score > 0) queue.push({ url: link.url, score });
     }
@@ -123,8 +130,7 @@ async function crawlSite(startUrl) {
     if (seen.has(url)) continue;
     seen.add(url);
 
-    const path = new URL(url).pathname;
-    if (disallow.some((p) => path.startsWith(p))) {
+    if (!(await allowed(url))) {
       skipped.push({ url, reason: "ROBOTS_DISALLOWED" });
       continue;
     }

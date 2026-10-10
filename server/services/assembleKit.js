@@ -28,6 +28,16 @@ async function llmStep(fn) {
   }
 }
 
+// isLocalUrl throws on a malformed URL. A malformed company URL must never fail the case
+// (it is a research gap), so every use goes through this wrapper.
+function safeIsLocal(url) {
+  try {
+    return isLocalUrl(url);
+  } catch {
+    return false;
+  }
+}
+
 // ---- honest fallbacks (no fabrication) ----
 function honestBrief({ companyName, crawlError, pagesUsed, reason }) {
   const BAD_NAME = /^(localhost|nothing|\d+(\.\d+){3})$/i;
@@ -52,6 +62,38 @@ function fallbackFlashcards(questions) {
     back: q.answer_outline,
     requirement_ids: q.requirement_ids || [],
   }));
+}
+
+// Human-readable gaps, recorded in the kit so a partial run is reported, never silent.
+function buildResearchNotes({ crawl, crawlError, discussion, discussionResults, skipDiscussion, thin }) {
+  const notes = [];
+  const pages = crawl.pages || [];
+
+  if (crawlError) {
+    notes.push(`Company site could not be researched: ${crawlError}`);
+  } else if (!(crawl.hiringPages || []).length) {
+    notes.push("No hiring or interview-process page was found on the company site.");
+  }
+
+  // When nothing was fetched, crawlError already carries the reason, so don't repeat it.
+  if (pages.length > 0) {
+    for (const s of crawl.skipped || []) {
+      notes.push(typeof s === "string" ? `Skipped source: ${s}` : `Skipped ${s.url}: ${s.reason}`);
+    }
+  }
+
+  if (skipDiscussion) {
+    notes.push("Public discussion was not searched (local or unusable company address).");
+  } else if (String(discussion.note || "").startsWith("SEARCH_UNAVAILABLE")) {
+    notes.push(`Public discussion search failed (${discussion.note}).`);
+  } else if (discussionResults.length === 0) {
+    notes.push("Public discussion was searched (Hacker News) and nothing relevant was found.");
+  }
+
+  if (thin) {
+    notes.push("The job description was very short, so this kit is thin and reflects only what it states.");
+  }
+  return notes;
 }
 
 // company_url may be unreachable; that is reported honestly, never fatal to the whole run.
@@ -110,9 +152,8 @@ async function assembleKit({ jd, companyUrl, days, onProgress = () => {} }) {
   }
 
   progress("researching");
-  const discussion = await searchDiscussion(companyName, {
-    skip: Boolean(urlError) || isLocalUrl(companyUrl),
-  });
+  const skipDiscussion = Boolean(urlError) || safeIsLocal(companyUrl);
+  const discussion = await searchDiscussion(companyName, { skip: skipDiscussion });
   const research = buildResearch(crawl, discussion.results);
 
   progress("generating");
@@ -172,9 +213,18 @@ async function assembleKit({ jd, companyUrl, days, onProgress = () => {} }) {
     }
   }
 
-  // Only cite sources we actually retrieved (the model can invent URLs).
+  // Only cite sources we actually retrieved.
   const allowedSources = new Set([...pagesUsed, ...discussionResults.map((r) => r.url).filter(Boolean)]);
   const briefSources = (brief.sources || []).filter((u) => allowedSources.has(u));
+
+  const researchNotes = buildResearchNotes({
+    crawl,
+    crawlError,
+    discussion,
+    discussionResults,
+    skipDiscussion,
+    thin: role.thin,
+  });
 
   const kit = {
     source: {
@@ -209,8 +259,13 @@ async function assembleKit({ jd, companyUrl, days, onProgress = () => {} }) {
     meta: {
       crawl_error: crawlError,
       research_skipped: discussion.note,
-      discussion_searched: !isLocalUrl(companyUrl) && !urlError,
+      discussion_searched: !skipDiscussion,
       discussion_found: discussionResults.length,
+      discussion_sources: discussionResults.map((r) => r.url).filter(Boolean),
+      hiring_page_found: (crawl.hiringPages || []).length > 0,
+      hiring_pages: crawl.hiringPages || [],
+      skipped_sources: crawl.skipped || [],
+      research_notes: researchNotes,
       thin_description: role.thin,
       brief_fallback: briefFallback,
       flashcards_error: flashcardsError,
