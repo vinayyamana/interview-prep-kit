@@ -1,20 +1,20 @@
 [
   {
     "id": "case-01",
-    "jd": "Senior Backend Engineer\n\nWe are looking for a Senior Backend Engineer with 5+ years of experience with Node.js and strong MongoDB experience. You will mentor junior engineers. Bonus points for Kubernetes experience.",
-    "company_url": "https://posthog.com",
+    "jd": "Senior Backend Engineer\n\nAbout the role: You will build and scale our payments APIs and mentor junior engineers.\n\nRequired:\n- 5+ years of experience with Node.js\n- Strong knowledge of PostgreSQL and schema design\n- Experience designing distributed systems\n- Experience mentoring junior engineers\n\nBonus points for:\n- Experience with Kubernetes\n- Open source contributions",
+    "company_url": "http://localhost:8099/acme/",
     "days": 5
   },
   {
     "id": "case-02",
-    "jd": "Software Engineer needed.",
-    "company_url": "https://example.com",
-    "days": 3
+    "jd": "Backend Engineer\nWe need someone good with APIs.",
+    "company_url": "http://localhost:8099/acme/",
+    "days": 1
   },
   {
     "id": "case-03",
-    "jd": "Frontend Engineer with 3+ years React experience needed.",
-    "company_url": "https://this-site-does-not-exist-xyz123.com",
-    "days": 2
+    "jd": "Frontend Engineer\n\nRequired:\n- 3+ years React\n- Strong CSS skills\n\nNice to have:\n- TypeScript\n- Accessibility experience",
+    "company_url": "http://localhost:9/nothing",
+    "days": 60
   }
 ]

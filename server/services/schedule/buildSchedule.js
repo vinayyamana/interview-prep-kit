@@ -2,7 +2,7 @@ const MINUTES_PER_QUESTION = { 1: 20, 2: 30, 3: 45 };
 const DEFAULT_MINUTES = 30;
 const REVIEW_FACTOR = 0.5; // repeat (review) questions take half the time
 const MIN_REVIEW_MINUTES = 15;
-const MAX_DAYS = 90;
+const MAX_DAYS = 90; // keep evaluate.js and the API validation in sync with this
 
 const idsOf = (q) => q.requirement_ids || [];
 const cost = (q) => MINUTES_PER_QUESTION[q.difficulty] || DEFAULT_MINUTES;
@@ -71,15 +71,6 @@ function requirementLabel(req) {
   return req.topic || (req.text ? shorten(req.text) : null);
 }
 
-// Label for one (requirement, category) group of questions inside a day.
-function groupLabel(category, req) {
-  const base = requirementLabel(req);
-  if (category === "company-fit") return "Company fit";
-  if (category === "system-design") return base ? `System design: ${base}` : "System design";
-  if (category === "behavioural") return base ? `Behavioural: ${base}` : "Behavioural";
-  return base;
-}
-
 function dayFocus(qs, requirements, isReview) {
   if (qs.length === 0) return "No questions available yet";
 
@@ -108,16 +99,25 @@ function dayFocus(qs, requirements, isReview) {
   return isReview ? `Review: ${label}` : label;
 }
 
-// Make sure no two days share a focus label.
-// 1st choice: add a short snippet of the day's first question. Last resort: "(part n)".
-function makeLabelsDistinct(days, questions) {
-  const qById = new Map(questions.map((q) => [q.id, q]));
+function countBy(days) {
   const counts = new Map();
   for (const d of days) counts.set(d.focus, (counts.get(d.focus) || 0) + 1);
+  return counts;
+}
 
+// Make sure no two days share a focus label.
+// 1st choice: add a short snippet of the day's first question.
+// Last resort: "(part n)".
+function makeLabelsDistinct(days, questions) {
+  const qById = new Map(questions.map((q) => [q.id, q]));
+
+  const counts = countBy(days);
   for (const d of days) {
     if (counts.get(d.focus) > 1) {
       const first = qById.get(d.question_ids[0]);
+      if (first && typeof first.prompt === "string" && first.prompt.trim()) {
+        d.focus = `${d.focus} — ${shorten(first.prompt.trim(), 40)}`;
+      }
     }
   }
 
@@ -184,6 +184,11 @@ function buildSchedule(questions, requirements, daysAvailable) {
       minutes,
     };
   });
+
+  // Spec: the schedule must span exactly the days requested.
+  if (days.length !== n) {
+    throw new Error(`buildSchedule produced ${days.length} days, expected ${n}`);
+  }
 
   return { days_available: n, days: makeLabelsDistinct(days, questions) };
 }
