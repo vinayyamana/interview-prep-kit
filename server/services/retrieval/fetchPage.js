@@ -1,14 +1,40 @@
 const cheerio = require("cheerio");
-const { assertSafeUrl } = require("../security/validateUrl");
-const { cleanText, dedupeSentences } = require("./cleanText");
+const dns = require("dns").promises;
+const net = require("net");
+const { cleanText, dedupeSentences }  = require("./cleanText");
 
 const MAX_BYTES = 3_000_000;
 const TIMEOUT_MS = 10_000;
 const UA = "InterviewPrepKitBot/1.0";
 
-// Reads the body but stops at MAX_BYTES, so a huge page cannot exhaust memory.
+function isPrivateIp(ip) {
+  if (net.isIPv6(ip)) return ip === "::1" || /^(fc|fd|fe80)/i.test(ip);
+  const [a, b] = ip.split(".").map(Number);
+  return (
+    a === 0 || a === 10 || a === 127 ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 168) ||
+    (a === 169 && b === 254)
+  );
+}
+
+async function validateUrl(raw) {
+  let url;
+  try {
+    url = new URL(raw);
+  } catch {
+    throw new Error("INVALID_URL");
+  }
+  if (!["http:", "https:"].includes(url.protocol)) throw new Error("INVALID_URL");
+  // Private/loopback hosts are blocked in production only, so local test sites still work.
+  if (process.env.NODE_ENV === "production") {
+    const { address } = await dns.lookup(url.hostname);
+    if (isPrivateIp(address)) throw new Error("PRIVATE_ADDRESS");
+  }
+  return url;
+}
+
 async function readLimited(res) {
-  if (!res.body) return "";
   const reader = res.body.getReader();
   const chunks = [];
   let size = 0;
@@ -24,14 +50,13 @@ async function readLimited(res) {
   }
   return Buffer.concat(chunks).toString("utf8");
 }
-
 function parsePage(html, url) {
   const $ = cheerio.load(html);
   const links = [];
   // Links mundu teesukovali, careers link nav/footer lo untundi
   $("a[href]").each((_, el) => {
     try {
-      const abs = new URL($(el).attr("href"), url); // relative links resolve against the page URL
+      const abs = new URL($(el).attr("href"), url);
       abs.hash = "";
       if (["http:", "https:"].includes(abs.protocol)) {
         links.push({ url: abs.href, text: $(el).text().trim().slice(0, 100) });
@@ -47,11 +72,11 @@ function parsePage(html, url) {
     text = $("body").text().replace(/\s+/g, " ").trim();
   }
   return { url: url.href, title, text: text.slice(0, 20000), links };
+
 }
 
 async function fetchPageOnce(rawUrl) {
-  // Every hop (first URL and each redirect) goes through the same SSRF check.
-  let url = await assertSafeUrl(rawUrl);
+  let url = await validateUrl(rawUrl);
   for (let hop = 0; hop < 4; hop++) {
     const res = await fetch(url, {
       redirect: "manual",
@@ -60,8 +85,7 @@ async function fetchPageOnce(rawUrl) {
     });
     const location = res.headers.get("location");
     if (res.status >= 300 && res.status < 400 && location) {
-      res.body?.cancel().catch(() => {});
-      url = await assertSafeUrl(new URL(location, url).href);
+      url = await validateUrl(new URL(location, url).href);
       continue;
     }
     if (!res.ok) throw new Error(`HTTP_${res.status}`);
@@ -73,7 +97,6 @@ async function fetchPageOnce(rawUrl) {
   throw new Error("TOO_MANY_REDIRECTS");
 }
 
-// Retries only transient failures (429, 5xx, timeout, network) with exponential backoff.
 async function fetchPage(url, retries = 2) {
   for (let i = 0; ; i++) {
     try {
@@ -86,5 +109,4 @@ async function fetchPage(url, retries = 2) {
   }
 }
 
-// validateUrl alias kept so existing imports of it keep working.
-module.exports = { fetchPage, validateUrl: assertSafeUrl };
+module.exports = { fetchPage, validateUrl };

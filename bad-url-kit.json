@@ -1,0 +1,208 @@
+{
+  "version": "1.0",
+  "generated_at": "2026-10-10T12:15:34Z",
+  "kits": [
+    {
+      "id": "bad-url",
+      "status": "ok",
+      "kit": {
+        "source": {
+          "company": "",
+          "company_url": "not a url",
+          "role": "Backend Engineer",
+          "location": "",
+          "jd_chars": 89,
+          "researched_at": "2026-10-10T12:15:34.222Z",
+          "pages_used": []
+        },
+        "company_brief": {
+          "summary": "Not enough public information was found about this company to write a reliable brief. The company site could not be crawled (Invalid URL).",
+          "what_they_do": "Not established from the available sources. Check the company site directly before the interview.",
+          "sources": [],
+          "edited": false
+        },
+        "role": {
+          "title": "Backend Engineer",
+          "seniority": "Senior",
+          "responsibilities": [],
+          "requirements": [
+            {
+              "id": "r1",
+              "text": "5+ years of Node.js and MongoDB",
+              "kind": "technical",
+              "priority": "must",
+              "topic": "Node.js and MongoDB"
+            },
+            {
+              "id": "r2",
+              "text": "Docker",
+              "kind": "technical",
+              "priority": "nice",
+              "topic": "Docker experience"
+            }
+          ]
+        },
+        "questions": [
+          {
+            "id": "q1",
+            "category": "technical",
+            "requirement_ids": [
+              "r1"
+            ],
+            "prompt": "How does the Node.js single-threaded event loop handle heavy CPU-bound cryptographic operations without blocking asynchronous I/O, and what mechanisms are available to offload such tasks?",
+            "answer_outline": "Explain that Node.js uses a libuv thread pool for certain asynchronous operations, but CPU-bound tasks block the main thread. Discuss solutions like worker threads, child processes, or offloading to external services.",
+            "difficulty": 2,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "q2",
+            "category": "technical",
+            "requirement_ids": [
+              "r1"
+            ],
+            "prompt": "In MongoDB, how do you design and evaluate the performance of a compound index when queries involve a mix of equality, sorting, and range conditions (the ESR rule)?",
+            "answer_outline": "Describe the ESR rule (Equality first, Sort second, Range last). Explain how index traversal works in the WiredTiger storage engine and how explain() output reveals whether a query uses an index efficiently or performs a collection scan.",
+            "difficulty": 3,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "q3",
+            "category": "technical",
+            "requirement_ids": [
+              "r2"
+            ],
+            "prompt": "What are the security implications of running a Node.js process as the root user inside a Docker container, and how do you implement a non-root user setup in a Dockerfile while maintaining file permission integrity for build artifacts?",
+            "answer_outline": "Mention root escalation risks inside containers. Show how to use the USER instruction, handle directory ownership changes during COPY, and avoid permission denied errors on mounted volumes or cache directories.",
+            "difficulty": 2,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "q4",
+            "category": "system-design",
+            "requirement_ids": [
+              "r1"
+            ],
+            "prompt": "Design a real-time analytics aggregation service using Node.js and MongoDB that handles thousands of incoming events per second. Explain how you would structure the MongoDB collections, implement write batching or buffering in Node.js to prevent database overload, and handle failure modes if MongoDB experiences a temporary network partition.",
+            "answer_outline": "Discuss schema design choices such as time-series collections or pre-aggregated bucket patterns, Node.js memory management and buffering strategies using streams or arrays, backpressure handling, and resilience patterns like circuit breakers and retry logic for database disconnects.",
+            "difficulty": 3,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          }
+        ],
+        "flashcards": [
+          {
+            "id": "f1",
+            "front": "How do CPU-bound tasks affect the Node.js event loop?",
+            "back": "CPU-bound tasks execute on the main thread, blocking the event loop and preventing asynchronous I/O operations from processing.",
+            "requirement_ids": [
+              "r1"
+            ],
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "f2",
+            "front": "What is a security risk of running a Docker container as root?",
+            "back": "Running as root increases container escape risks, as compromised processes gain full administrative privileges on the host system.",
+            "requirement_ids": [
+              "r2"
+            ],
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "f3",
+            "front": "What is the ESR rule for MongoDB compound index design?",
+            "back": "The ESR rule states indexes should order fields by Equality conditions first, Sort operations second, and Range queries last.",
+            "requirement_ids": [
+              "r1"
+            ],
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "f4",
+            "front": "How does write batching protect MongoDB during high ingestion rates?",
+            "back": "Batching groups multiple operations together to reduce database round-trips, preventing connection saturation and memory overload.",
+            "requirement_ids": [
+              "r1"
+            ],
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          }
+        ],
+        "schedule": {
+          "days_available": 3,
+          "days": [
+            {
+              "day": 1,
+              "focus": "Node.js and MongoDB + System design: Node.js and MongoDB",
+              "question_ids": [
+                "q2",
+                "q4"
+              ],
+              "minutes": 90
+            },
+            {
+              "day": 2,
+              "focus": "Node.js and MongoDB",
+              "question_ids": [
+                "q1"
+              ],
+              "minutes": 30
+            },
+            {
+              "day": 3,
+              "focus": "Docker experience",
+              "question_ids": [
+                "q3"
+              ],
+              "minutes": 30
+            }
+          ]
+        },
+        "coverage": {
+          "uncovered_requirement_ids": [],
+          "passes": 1,
+          "history": [
+            {
+              "pass": 1,
+              "gaps": []
+            }
+          ]
+        },
+        "meta": {
+          "crawl_error": "Invalid URL",
+          "research_skipped": "SEARCH_SKIPPED_LOCAL_SITE",
+          "discussion_searched": false,
+          "discussion_found": 0,
+          "discussion_sources": [],
+          "hiring_page_found": false,
+          "hiring_pages": [],
+          "skipped_sources": [],
+          "research_notes": [
+            "Company site could not be researched: Invalid URL",
+            "Public discussion was not searched (local or unusable company address).",
+            "The job description was very short, so this kit is thin and reflects only what it states."
+          ],
+          "thin_description": true,
+          "brief_fallback": "no_sources",
+          "flashcards_error": null,
+          "fallback_questions": []
+        }
+      },
+      "error": null
+    }
+  ]
+}

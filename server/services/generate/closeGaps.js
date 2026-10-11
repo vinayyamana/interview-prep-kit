@@ -1,18 +1,17 @@
 const { checkCoverage } = require("../coverage/checkCoverage");
 const { generateForCategory } = require("./questions");
 
-// Gap-closing rounds after the first draft. The draft is pass 1.
+// Gap-closing rounds after the first draft (the draft is pass 1).
 // 2 rounds: one retry fixes most misses, a third rarely helps and burns free-tier tokens.
-// If gaps still remain after that, a deterministic fallback question is created from the
-// requirement text itself, so a must-have never ships uncovered.
+// Anything still uncovered gets a deterministic fallback question, so a must-have never ships uncovered.
 const MAX_PASSES = 2;
 
+const isRateLimit = (err) => /429|quota|rate.?limit/i.test(err?.message || "");
+
 function categoryFor(requirement) {
-  if (requirement.kind === "behavioural") return "behavioural";
-  return "technical";
+  return requirement.kind === "behavioural" ? "behavioural" : "technical";
 }
 
-// New questions get ids continuing after the highest existing id.
 function assignIds(list) {
   let max = list.reduce((m, q) => {
     const n = Number(String(q.id || "").replace(/^q/, ""));
@@ -21,7 +20,6 @@ function assignIds(list) {
   return list.map((q) => (q.id ? q : { ...q, id: `q${++max}` }));
 }
 
-// Deterministic last resort: a plain question built from the requirement text.
 function fallbackQuestion(req) {
   const category = categoryFor(req);
   const prompt =
@@ -44,12 +42,13 @@ async function closeCoverageGaps({ role, research, questions }) {
   let all = [...questions];
   const history = [];
   const validIds = new Set(role.requirements.map((r) => r.id));
+  let rateLimited = false;
 
   let gaps = checkCoverage(role.requirements, all).uncoveredRequirementIds;
   history.push({ pass: 1, gaps });
 
   let rounds = 0;
-  while (gaps.length > 0 && rounds < MAX_PASSES) {
+  while (gaps.length > 0 && rounds < MAX_PASSES && !rateLimited) {
     rounds++;
 
     const gapReqs = role.requirements.filter((r) => gaps.includes(r.id));
@@ -61,26 +60,27 @@ async function closeCoverageGaps({ role, research, questions }) {
         const alreadyAsked = all.map((q) => q.prompt).slice(-12);
         const fresh = await generateForCategory(category, role, reqs, research, alreadyAsked);
 
-        // Drop model-supplied ids (they collide with existing ones) and any hallucinated
-        // requirement ids. If the model gave no valid link and only one requirement was
-        // targeted, that requirement is the only possible target.
-        const cleaned = fresh.map(({ id, ...rest }) => {
-          const ids = (rest.requirement_ids || []).filter((x) => validIds.has(x));
-          return {
-            ...rest,
-            requirement_ids: ids.length ? ids : reqs.length === 1 ? [reqs[0].id] : [],
-          };
-        });
+        const cleaned = fresh
+          .map(({ id, ...rest }) => {
+            const ids = (rest.requirement_ids || []).filter((x) => validIds.has(x));
+            return {
+              ...rest,
+              requirement_ids: ids.length ? ids : reqs.length === 1 ? [reqs[0].id] : [],
+            };
+          })
+          // A question linked to no requirement can never close a gap.
+          .filter((q) => q.requirement_ids.length > 0);
 
         all.push(...cleaned);
         all = assignIds(all);
       } catch (err) {
-        if (/429|quota|rate.?limit/i.test(err.message || "")) {
-          if (!err.code) err.code = "LLM_RATE_LIMITED";
-          throw err;
+        if (isRateLimit(err)) {
+          // Don't throw away a finished draft: stop calling the model, let the fallback close the gaps.
+          rateLimited = true;
+          console.warn("[closeGaps] rate limited, switching to deterministic fallback");
+          break;
         }
         console.warn(`[closeGaps] ${category} generation failed: ${err.message}`);
-        // A category that fails to close stays a gap for now; the fallback below handles it.
       }
     }
 
@@ -88,7 +88,6 @@ async function closeCoverageGaps({ role, research, questions }) {
     history.push({ pass: rounds + 1, gaps });
   }
 
-  // Deterministic fallback for anything the model could not cover.
   const fallbackRequirementIds = [];
   if (gaps.length > 0) {
     const gapReqs = role.requirements.filter((r) => gaps.includes(r.id));
@@ -96,6 +95,7 @@ async function closeCoverageGaps({ role, research, questions }) {
     all = assignIds(all);
     fallbackRequirementIds.push(...gaps);
     gaps = checkCoverage(role.requirements, all).uncoveredRequirementIds;
+    history.push({ pass: "fallback", gaps });
   }
 
   return {
@@ -104,6 +104,7 @@ async function closeCoverageGaps({ role, research, questions }) {
     passes: rounds + 1,
     history,
     fallbackRequirementIds,
+    degraded: rateLimited,
   };
 }
 
