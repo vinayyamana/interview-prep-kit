@@ -32,7 +32,7 @@ export default function RegisterPage() {
       }
 
       router.push("/dashboard");
-    } catch (err) {
+    } catch {
       setError("Unable to connect to server");
       setLoading(false);
     }

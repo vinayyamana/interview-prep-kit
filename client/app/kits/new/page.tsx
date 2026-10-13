@@ -33,7 +33,7 @@ export default function NewKitPage() {
       }
 
       router.push(`/kits/${data.id || data._id}`);
-    } catch (err) {
+    } catch {
       setError("Unable to connect to server");
       setLoading(false);
     }

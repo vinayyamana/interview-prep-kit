@@ -334,33 +334,28 @@ router.patch(
 );
 
 // POST /api/kits/:id/flashcard - add a new, user-written flashcard
-router.post(
-  "/:id/flashcard",
+// PATCH /api/kits/:id/practice - save one card's confidence (1 Hard, 2 OK, 3 Easy)
+router.patch(
+  "/:id/practice",
   requireAuth,
   wrap(async (req, res) => {
-    const { front, back, requirement_ids = [] } = req.body || {};
-    if (!front || !back) {
-      return res.status(400).json({ message: "front and back are required" });
+    const { cardId, confidence } = req.body || {};
+    if (typeof cardId !== "string" || ![1, 2, 3].includes(confidence)) {
+      return res
+        .status(400)
+        .json({ message: "cardId (string) and confidence (1, 2 or 3) are required" });
     }
 
     const kit = await findOwnKit(req);
     if (!kit) return res.status(404).json({ message: "Kit not found" });
 
-    if (!kit.data) kit.data = {};
-    if (!kit.data.flashcards) kit.data.flashcards = [];
+    const exists = (kit.data?.flashcards || []).some((f) => f.id === cardId);
+    if (!exists) return res.status(404).json({ message: "Flashcard not found" });
 
-    const newFlashcard = {
-      id: newUserItemId("f"),
-      front,
-      back,
-      requirement_ids: Array.isArray(requirement_ids) ? requirement_ids : [],
-      edited: true,
-    };
-    kit.data.flashcards.push(newFlashcard);
-
+    kit.data.practice = { ...(kit.data.practice || {}), [cardId]: confidence };
     kit.markModified("data");
     await kit.save();
-    res.status(201).json(newFlashcard);
+    res.json({ practice: kit.data.practice });
   })
 );
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import PracticeMode from "../../components/PracticeMode";
 const STEP_LABELS: Record<string, string> = {
@@ -13,6 +14,17 @@ const STEP_LABELS: Record<string, string> = {
 };
 const stepLabel = (s: string) =>
   STEP_LABELS[s] || s.replace(/[_-]/g, " ");
+
+// Ratings come from the saved kit; localStorage is only a fallback cache
+function mergeRatings(kitId: string, saved: Record<string, 1 | 2 | 3> | undefined) {
+  let local: Record<string, 1 | 2 | 3> = {};
+  try {
+    local = JSON.parse(localStorage.getItem("ratings-" + kitId) || "{}");
+  } catch {
+    /* ignore */
+  }
+  return { ...local, ...(saved || {}) };
+}
 
 type Question = {
   id: string;
@@ -98,6 +110,7 @@ export default function KitPage() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line prefer-const
     let interval: ReturnType<typeof setInterval>;
 
     async function poll() {
@@ -360,7 +373,7 @@ export default function KitPage() {
       <div className="max-w-2xl mx-auto p-6">
         <h1 className="text-2xl font-semibold mb-4 text-red-600">Generation failed</h1>
         <p className={bodyText}>{kit.error?.message || "Unknown error"}</p>
-        <a href="/kits/new" className="inline-block mt-4 rounded-md border px-4 py-2 font-medium">Try again with a new kit</a>
+        <Link href="/kits/new" className="inline-block mt-4 rounded-md border px-4 py-2 font-medium">Try again with a new kit</Link>
       </div>
     );
   }
@@ -392,6 +405,12 @@ export default function KitPage() {
       {data.meta?.thin_description && (
         <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-md p-3">
           The job description had very little detail, so this kit is intentionally thin.
+        </p>
+      )}
+
+      {data.meta?.crawl_error && (
+        <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-md p-3">
+          The company site could not be fully retrieved: {data.meta.crawl_error}
         </p>
       )}
 
@@ -715,7 +734,28 @@ export default function KitPage() {
       {/* ---------- Practice mode ---------- */}
       <section>
         <h2 className="text-lg font-semibold mb-2">Practice Mode</h2>
-        <PracticeMode flashcards={data.flashcards || []} />
+        <PracticeMode
+          key={id}
+          flashcards={data.flashcards || []}
+          initialRatings={mergeRatings(id, data.practice)}
+          onRate={(cardId, value) => {
+            // instant local cache
+            const r = mergeRatings(id, data.practice);
+            r[cardId] = value;
+            try {
+              localStorage.setItem("ratings-" + id, JSON.stringify(r));
+            } catch {
+              /* ignore */
+            }
+            // durable save on the server
+            fetch(`${API_BASE}/${id}/practice`, {
+              method: "PATCH",
+              credentials: "include",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ cardId, confidence: value }),
+            }).catch(() => setErrorMsg("Could not save your rating to the server"));
+          }}
+        />
       </section>
 
       {/* ---------- Coverage ---------- */}

@@ -34,7 +34,7 @@ export default function LoginPage() {
       }
 
       router.push("/dashboard");
-    } catch (err) {
+    } catch {
       setError(`Unable to connect to server at ${API_URL}`);
       setLoading(false);
     }
