@@ -1,37 +1,24 @@
 const cheerio = require("cheerio");
-const dns = require("dns").promises;
-const net = require("net");
-const { cleanText, dedupeSentences }  = require("./cleanText");
+const { fetch } = require("undici");
+const { cleanText, dedupeSentences } = require("./cleanText");
+const { assertSafeUrl, safeAgent } = require("../security/validateUrl");
 
 const MAX_BYTES = 3_000_000;
 const TIMEOUT_MS = 10_000;
 const UA = "InterviewPrepKitBot/1.0";
 
-function isPrivateIp(ip) {
-  if (net.isIPv6(ip)) return ip === "::1" || /^(fc|fd|fe80)/i.test(ip);
-  const [a, b] = ip.split(".").map(Number);
-  return (
-    a === 0 || a === 10 || a === 127 ||
-    (a === 172 && b >= 16 && b <= 31) ||
-    (a === 192 && b === 168) ||
-    (a === 169 && b === 254)
-  );
-}
-
+// Same error messages as before, backed by the strict checker.
 async function validateUrl(raw) {
-  let url;
   try {
-    url = new URL(raw);
-  } catch {
-    throw new Error("INVALID_URL");
+    return await assertSafeUrl(raw);
+  } catch (err) {
+    const msg =
+      err.code === "URL_BLOCKED" ? "PRIVATE_ADDRESS" : err.code || err.message;
+    const e = new Error(msg);
+    e.code = err.code;
+    e.detail = err.message;
+    throw e;
   }
-  if (!["http:", "https:"].includes(url.protocol)) throw new Error("INVALID_URL");
-  // Private/loopback hosts are blocked in production only, so local test sites still work.
-  if (process.env.NODE_ENV === "production") {
-    const { address } = await dns.lookup(url.hostname);
-    if (isPrivateIp(address)) throw new Error("PRIVATE_ADDRESS");
-  }
-  return url;
 }
 
 async function readLimited(res) {
@@ -50,10 +37,11 @@ async function readLimited(res) {
   }
   return Buffer.concat(chunks).toString("utf8");
 }
+
 function parsePage(html, url) {
   const $ = cheerio.load(html);
   const links = [];
-  // Links mundu teesukovali, careers link nav/footer lo untundi
+  // Take links first, the careers link is usually in nav/footer
   $("a[href]").each((_, el) => {
     try {
       const abs = new URL($(el).attr("href"), url);
@@ -65,24 +53,32 @@ function parsePage(html, url) {
   });
 
   const title = $("title").text().trim();
-  // Cleaned text, kani empty aite pata method ki fallback
+  // Cleaned text first, fall back to the old method if empty
   let text = dedupeSentences(cleanText(html));
   if (!text) {
     $("script, style, noscript, svg, nav, footer").remove();
     text = $("body").text().replace(/\s+/g, " ").trim();
   }
   return { url: url.href, title, text: text.slice(0, 20000), links };
-
 }
 
 async function fetchPageOnce(rawUrl) {
   let url = await validateUrl(rawUrl);
   for (let hop = 0; hop < 4; hop++) {
-    const res = await fetch(url, {
-      redirect: "manual",
-      headers: { "User-Agent": UA, Accept: "text/html" },
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-    });
+    let res;
+    try {
+      res = await fetch(url, {
+        redirect: "manual",
+        dispatcher: safeAgent,
+        headers: { "User-Agent": UA, Accept: "text/html" },
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+      });
+    } catch (err) {
+      if (err.cause && err.cause.code === "URL_BLOCKED") {
+        throw new Error("PRIVATE_ADDRESS");
+      }
+      throw err;
+    }
     const location = res.headers.get("location");
     if (res.status >= 300 && res.status < 400 && location) {
       url = await validateUrl(new URL(location, url).href);
@@ -102,7 +98,9 @@ async function fetchPage(url, retries = 2) {
     try {
       return await fetchPageOnce(url);
     } catch (err) {
-      const retryable = /HTTP_(429|5\d\d)|TimeoutError|fetch failed/.test(`${err.name} ${err.message}`);
+      const retryable = /HTTP_(429|5\d\d)|TimeoutError|fetch failed/.test(
+        `${err.name} ${err.message}`
+      );
       if (i >= retries || !retryable) throw err;
       await new Promise((r) => setTimeout(r, 1000 * 2 ** i));
     }
