@@ -6,6 +6,29 @@ const path = require('path');
 const baseDir = process.env.INIT_CWD || process.cwd();
 
 const { assembleKit } = require('../services/assembleKit');
+const crypto = require('crypto');
+
+const inflight = new Map();
+
+function caseKey(c) {
+  const norm = (s) => String(s || '').trim().replace(/\s+/g, ' ').toLowerCase();
+  const url = String(c.company_url || '').trim().toLowerCase().replace(/\/+$/, '');
+  return crypto
+    .createHash('sha256')
+    .update(`${norm(c.jd)}|${url}|${Number(c.days)}`)
+    .digest('hex');
+}
+
+// Same JD + company + days -> build once, reuse (even when cases run in parallel).
+function assembleOnce(c) {
+  const key = caseKey(c);
+  if (!inflight.has(key)) {
+    const p = assembleKit({ jd: c.jd, companyUrl: c.company_url, days: Number(c.days) });
+    p.catch(() => inflight.delete(key));
+    inflight.set(key, p);
+  }
+  return inflight.get(key);
+}
 
 const MAX_DAYS = 365;
 const CASE_TIMEOUT_MS = Number(process.env.EVAL_CASE_TIMEOUT_MS) || 170000;
@@ -134,11 +157,11 @@ async function runCase(c, seenIds) {
 
   try {
     const kit = await withTimeout(
-      assembleKit({ jd: c.jd, companyUrl: c.company_url, days: Number(c.days) }),
+      assembleOnce(c),
       CASE_TIMEOUT_MS,
       c.id
     );
-    return { id: c.id, status: 'ok', kit, error: null };
+    return { id: c.id, status: 'ok', kit: structuredClone(kit), error: null };
   } catch (err) {
     console.error(`Case ${c.id} failed:`, err.message);
     return { id: c.id, status: 'failed', kit: null, error: toErrorInfo(err) };
@@ -155,7 +178,14 @@ function writeOutput(kits) {
   const target = path.resolve(baseDir, outputPath);
   const tmp = `${target}.tmp`;
   fs.writeFileSync(tmp, JSON.stringify(output, null, 2));
-  fs.renameSync(tmp, target);
+  try {
+    fs.renameSync(tmp, target);
+  } catch (err) {
+    if (err.code !== 'EPERM' && err.code !== 'EBUSY') throw err;
+    // Windows: target locked (editor, OneDrive, antivirus, parallel write). Copy instead.
+    fs.copyFileSync(tmp, target);
+    fs.unlinkSync(tmp);
+  }
 }
 
 async function main() {
