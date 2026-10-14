@@ -187,7 +187,38 @@ router.post(
       return res.status(400).json({ message: "company_url is not allowed", error: err.message });
     }
 
-    const kitDoc = await Kit.create({ userId: req.session.userId, status: "queued" });
+    const hash = Kit.hashInput({ jd, companyUrl: company_url, days: dayCount });
+
+    // Same JD + company + days from the same user: return the existing kit.
+    const existing = await Kit.findOne({
+      userId: req.session.userId,
+      inputHash: hash,
+    }).select("_id status");
+
+    if (existing && existing.status !== "failed") {
+      return res.status(200).json({ id: existing._id, reused: true });
+    }
+    // A failed kit would block the unique index, so drop it and retry fresh.
+    if (existing) await Kit.deleteOne({ _id: existing._id });
+
+    let kitDoc;
+    try {
+      kitDoc = await Kit.create({
+        userId: req.session.userId,
+        status: "queued",
+        inputHash: hash,
+      });
+    } catch (err) {
+      // Two identical submits at the same moment: unique index rejects the second.
+      if (err.code === 11000) {
+        const dup = await Kit.findOne({
+          userId: req.session.userId,
+          inputHash: hash,
+        }).select("_id");
+        if (dup) return res.status(200).json({ id: dup._id, reused: true });
+      }
+      throw err;
+    }
 
     res.status(202).json({ id: kitDoc._id });
 
