@@ -38,7 +38,12 @@ function fallbackQuestion(req) {
   };
 }
 
-async function closeCoverageGaps({ role, research, questions }) {
+async function closeCoverageGaps({
+  role,
+  research,
+  questions,
+  generate = generateForCategory,
+}) {
   let all = [...questions];
   const history = [];
   const validIds = new Set(role.requirements.map((r) => r.id));
@@ -58,7 +63,7 @@ async function closeCoverageGaps({ role, research, questions }) {
     for (const [category, reqs] of Object.entries(byCategory)) {
       try {
         const alreadyAsked = all.map((q) => q.prompt).slice(-12);
-        const fresh = await generateForCategory(category, role, reqs, research, alreadyAsked);
+        const fresh = await generate(category, role, reqs, research, alreadyAsked);
 
         const cleaned = fresh
           .map(({ id, ...rest }) => {

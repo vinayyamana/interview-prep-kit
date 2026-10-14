@@ -1,0 +1,630 @@
+{
+  "version": "1.0",
+  "generated_at": "2026-10-14T04:23:27Z",
+  "kits": [
+    {
+      "id": "gap-test",
+      "status": "ok",
+      "kit": {
+        "source": {
+          "company": "acme",
+          "company_url": "http://localhost:8099/acme/",
+          "role": "Staff Engineer",
+          "location": "",
+          "jd_chars": 444,
+          "researched_at": "2026-10-14T04:23:27.315Z",
+          "pages_used": [
+            "http://localhost:8099/acme/",
+            "http://localhost:8099/acme/handbook/people/how-we-interview.html",
+            "http://localhost:8099/acme/about.html"
+          ]
+        },
+        "company_brief": {
+          "summary": "Acme is a 60-person company that values ownership and clear writing. The organization operates with a small team focused on specific technology solutions.",
+          "what_they_do": "The company builds demand forecasting APIs for its customers. These tools are designed to help users predict future demand using programmatic interfaces. Specific details regarding their customers beyond the API users are not stated.",
+          "sources": [
+            "http://localhost:8099/acme/handbook/people/how-we-interview.html",
+            "http://localhost:8099/acme/about.html"
+          ],
+          "edited": false
+        },
+        "role": {
+          "title": "Staff Engineer",
+          "seniority": "Staff",
+          "responsibilities": [
+            "8+ years Node.js",
+            "Deep PostgreSQL tuning and indexing",
+            "Designing distributed systems",
+            "Mentoring junior engineers",
+            "Incident response and on-call leadership",
+            "Kubernetes operations",
+            "Observability: tracing, metrics, logging",
+            "Stakeholder communication with product managers",
+            "Security best practices (OWASP)",
+            "Cost optimisation on AWS",
+            "Writing technical design docs",
+            "Rust"
+          ],
+          "requirements": [
+            {
+              "id": "r1",
+              "text": "8+ years Node.js",
+              "kind": "technical",
+              "priority": "must",
+              "topic": "Node.js experience"
+            },
+            {
+              "id": "r2",
+              "text": "Deep PostgreSQL tuning and indexing",
+              "kind": "technical",
+              "priority": "must",
+              "topic": "PostgreSQL tuning"
+            },
+            {
+              "id": "r3",
+              "text": "Designing distributed systems",
+              "kind": "technical",
+              "priority": "must",
+              "topic": "Distributed systems"
+            },
+            {
+              "id": "r4",
+              "text": "Mentoring junior engineers",
+              "kind": "behavioural",
+              "priority": "must",
+              "topic": "Mentoring engineers"
+            },
+            {
+              "id": "r5",
+              "text": "Incident response and on-call leadership",
+              "kind": "behavioural",
+              "priority": "must",
+              "topic": "On-call leadership"
+            },
+            {
+              "id": "r6",
+              "text": "Kubernetes operations",
+              "kind": "technical",
+              "priority": "must",
+              "topic": "Kubernetes operations"
+            },
+            {
+              "id": "r7",
+              "text": "Observability: tracing, metrics, logging",
+              "kind": "technical",
+              "priority": "must",
+              "topic": "Observability systems"
+            },
+            {
+              "id": "r8",
+              "text": "Stakeholder communication with product managers",
+              "kind": "behavioural",
+              "priority": "must",
+              "topic": "Stakeholder communication"
+            },
+            {
+              "id": "r9",
+              "text": "Security best practices (OWASP)",
+              "kind": "technical",
+              "priority": "must",
+              "topic": "Security best practices"
+            },
+            {
+              "id": "r10",
+              "text": "Cost optimisation on AWS",
+              "kind": "technical",
+              "priority": "must",
+              "topic": "AWS cost optimisation"
+            },
+            {
+              "id": "r11",
+              "text": "Writing technical design docs",
+              "kind": "technical",
+              "priority": "must",
+              "topic": "Technical documentation"
+            },
+            {
+              "id": "r12",
+              "text": "Rust",
+              "kind": "technical",
+              "priority": "nice",
+              "topic": "Rust language"
+            },
+            {
+              "id": "r13",
+              "text": "Open source maintenance",
+              "kind": "technical",
+              "priority": "nice",
+              "topic": "Open source maintenance"
+            }
+          ]
+        },
+        "questions": [
+          {
+            "id": "q1",
+            "category": "technical",
+            "requirement_ids": [
+              "r1"
+            ],
+            "prompt": "How does the Node.js V8 garbage collector handle memory management for large object graphs, and what are the specific indicators that point to a memory leak in a long-running HTTP server?",
+            "answer_outline": "Explain V8's generational garbage collection (Scavenge for young generation, Mark-Sweep-Compact for old generation). Discuss heap snapshots, process.memoryUsage(), heap dump analysis using Chrome DevTools or Clinic.js, and common culprits like global closures or event listener leaks.",
+            "difficulty": 2,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "q2",
+            "category": "technical",
+            "requirement_ids": [
+              "r1"
+            ],
+            "prompt": "Explain how the Node.js event loop handles libuv thread pool tasks, and what happens to performance when CPU-intensive synchronous operations block the event loop.",
+            "answer_outline": "Discuss the phases of the event loop (timers, poll, check, close), the role of the libuv thread pool for file system and crypto operations, and how synchronous work starves the event loop, causing latency spikes and dropped requests.",
+            "difficulty": 2,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "q3",
+            "category": "technical",
+            "requirement_ids": [
+              "r2"
+            ],
+            "prompt": "How do B-Tree and GIN indexes function under the hood in PostgreSQL, and under what specific query workloads would you choose a GIN index over a B-Tree?",
+            "answer_outline": "Explain B-Tree structure for range and equality queries on scalar types. Explain GIN (Generalized Inverted Index) for composite values like JSONB, arrays, or full-text search where elements are indexed individually, trading write performance for fast lookups inside structured data.",
+            "difficulty": 3,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "q4",
+            "category": "technical",
+            "requirement_ids": [
+              "r2"
+            ],
+            "prompt": "How would you diagnose and resolve a PostgreSQL performance degradation issue caused by stale query planner statistics and bloat in heavily updated tables?",
+            "answer_outline": "Cover checking pg_stat_user_tables for dead tuples, running VACUUM FULL vs standard VACUUM and REINDEX, checking autovacuum tuning parameters, and running ANALYZE to update statistics for the query planner.",
+            "difficulty": 2,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "q5",
+            "category": "technical",
+            "requirement_ids": [
+              "r3"
+            ],
+            "prompt": "How do you handle distributed consensus and split-brain scenarios in a distributed cluster without a centralized coordination service?",
+            "answer_outline": "Discuss Raft or Paxos protocols, leader election mechanisms, quorum requirements (N/2 + 1), fencing tokens to prevent split-brain write conflicts, and network partition handling.",
+            "difficulty": 3,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "q6",
+            "category": "technical",
+            "requirement_ids": [
+              "r6"
+            ],
+            "prompt": "How do Kubernetes liveness, readiness, and startup probes interact during a rolling deployment, and how do you configure them to prevent downtime when an application has a slow initialization phase?",
+            "answer_outline": "Explain how startup probes protect slow-starting apps from being killed by liveness probes, how readiness probes control traffic routing from services/ingress, and how proper configuration avoids traffic dropping during rolling updates.",
+            "difficulty": 2,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "q7",
+            "category": "technical",
+            "requirement_ids": [
+              "r7"
+            ],
+            "prompt": "How does distributed tracing propagate context across asynchronous service boundaries, and what is the difference between spans, traces, and baggage in OpenTelemetry?",
+            "answer_outline": "Explain traceparent and tracestate HTTP headers, propagation mechanisms via carriers, the definition of a trace as a directed acyclic graph of spans, and how baggage propagates key-value pairs across the entire distributed context.",
+            "difficulty": 2,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "q8",
+            "category": "technical",
+            "requirement_ids": [
+              "r9"
+            ],
+            "prompt": "What are the primary mechanics of Server-Side Request Forgery (SSRF), and how do you mitigate it in an application that fetches external URLs based on user input?",
+            "answer_outline": "Discuss OWASP SSRF risks, validating and sanitizing user-supplied URLs, using a dedicated egress proxy with strict allowlists, blocking internal IP ranges (RFC 1918, metadata services like 169.254.169.254), and disabling unnecessary protocol schemes.",
+            "difficulty": 2,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "q9",
+            "category": "technical",
+            "requirement_ids": [
+              "r10"
+            ],
+            "prompt": "How would you architect a cost optimization strategy for high-throughput AWS workloads using a mix of EC2 Reserved Instances, Savings Plans, and Spot Instances without impacting service reliability?",
+            "answer_outline": "Cover analyzing AWS Cost Explorer and Trusted Advisor recommendations, purchasing compute savings plans for baseline predictable loads, using Spot Instances for fault-tolerant stateless workers with interruption handlers, and rightsizing over-provisioned instances.",
+            "difficulty": 2,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "q10",
+            "category": "technical",
+            "requirement_ids": [
+              "r11"
+            ],
+            "prompt": "What sections and architectural trade-off evaluations must be included in a technical design document to ensure cross-functional alignment and clear implementation boundaries?",
+            "answer_outline": "Discuss including context, goals, non-goals, detailed architecture diagrams, proposed solution, alternative solutions considered with trade-off matrices, migration/rollout plans, and security/operational considerations.",
+            "difficulty": 1,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "q11",
+            "category": "technical",
+            "requirement_ids": [
+              "r12"
+            ],
+            "prompt": "How does Rust's ownership and borrowing model enforce memory safety at compile time without a garbage collector?",
+            "answer_outline": "Explain ownership rules (each value has an owner, only one owner at a time, scope-based dropping), borrowing with immutable (&T) and mutable (&mutT) references, and the compile-time borrow checker preventing data races and use-after-free bugs.",
+            "difficulty": 2,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "q12",
+            "category": "technical",
+            "requirement_ids": [
+              "r13"
+            ],
+            "prompt": "How do you manage breaking changes and backward compatibility when maintaining an open-source library used by thousands of downstream projects?",
+            "answer_outline": "Discuss Semantic Versioning (SemVer), deprecation cycles with clear warning logs before removal, automated changelogs, backward-compatibility test suites, and handling community contributions via robust CI/CD and pull request reviews.",
+            "difficulty": 2,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "q13",
+            "category": "behavioural",
+            "requirement_ids": [
+              "r4"
+            ],
+            "prompt": "Tell me about a time when you structured a formal or informal mentoring program for junior engineers to accelerate their growth. What specific goals did you set, and how did you measure their progress over time?",
+            "answer_outline": "Discuss setting clear milestones, providing actionable feedback, balancing project delivery with learning opportunities, and tracking metrics such as autonomy and code quality.",
+            "difficulty": 2,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "q14",
+            "category": "behavioural",
+            "requirement_ids": [
+              "r4"
+            ],
+            "prompt": "Describe a situation where a junior engineer made a significant production mistake. How did you handle the post-incident conversation and use it as a learning opportunity without damaging their confidence?",
+            "answer_outline": "Explain how to conduct a blameless post-mortem, guide the engineer through root-cause analysis, and establish preventative guardrails collaboratively.",
+            "difficulty": 2,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "q16",
+            "category": "behavioural",
+            "requirement_ids": [
+              "r8"
+            ],
+            "prompt": "Describe a scenario where you had to push back on a product manager's feature request or timeline due to technical debt or architectural risk. How did you frame the conversation to reach a shared understanding?",
+            "answer_outline": "Focus on translating technical risk into business impact, presenting alternative solutions with trade-offs, and building trust through transparent collaboration.",
+            "difficulty": 2,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "q17",
+            "category": "company-fit",
+            "requirement_ids": [
+              "r4"
+            ],
+            "prompt": "How would you approach the value of ownership when it comes to guiding and supporting the professional development of junior engineers on your team?",
+            "answer_outline": "Discuss taking personal responsibility for team growth, identifying individual strengths and areas for improvement, providing actionable feedback, and creating a psychologically safe environment for learning.",
+            "difficulty": 2,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "q18",
+            "category": "company-fit",
+            "requirement_ids": [
+              "r8"
+            ],
+            "prompt": "How does practicing clear writing help you align with stakeholders, such as product managers, when defining technical requirements or negotiating timelines?",
+            "answer_outline": "Explain the importance of clarity, brevity, and anticipation of stakeholder questions in written proposals, and how it prevents misunderstandings and builds trust.",
+            "difficulty": 2,
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "category": "behavioural",
+            "requirement_ids": [
+              "r5"
+            ],
+            "prompt": "Tell me about a time when you led the incident response for a critical production outage during an on-call rotation. How did you coordinate remediation efforts across multiple teams, and what steps did you take afterward to prevent similar failures?",
+            "answer_outline": "Describe the severity of the incident, how command and control was established during triage, communication channels used with stakeholders, the root cause analysis, and actionable follow-ups implemented to improve system resilience.",
+            "difficulty": 3,
+            "id": "q19",
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "category": "behavioural",
+            "requirement_ids": [
+              "r5"
+            ],
+            "prompt": "Describe a situation where an on-call escalation process was failing or causing burnout among team members. How did you step in to redesign the rotation, alerting thresholds, or operational runbooks to improve incident response reliability?",
+            "answer_outline": "Explain the metrics or symptoms that indicated a failing on-call process, the strategy used to audit and reduce alert noise, improvements made to runbooks, and how cultural or structural changes were introduced to the team.",
+            "difficulty": 2,
+            "id": "q20",
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          }
+        ],
+        "flashcards": [
+          {
+            "id": "f1",
+            "front": "How does V8's garbage collector handle memory for young and old generations?",
+            "back": "V8 uses a generational GC, using the Scavenge algorithm for the young generation and Mark-Sweep-Compact for the old generation.",
+            "requirement_ids": [
+              "r1"
+            ],
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "f2",
+            "front": "When should you choose a GIN index over a B-Tree in PostgreSQL?",
+            "back": "Choose GIN for composite values like JSONB, arrays, or full-text search where internal elements must be indexed individually for fast lookups.",
+            "requirement_ids": [
+              "r2"
+            ],
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "f3",
+            "front": "How do distributed clusters prevent split-brain write conflicts during network partitions?",
+            "back": "They require a quorum of nodes (N/2 + 1) and use fencing tokens to invalidate outdated leaders.",
+            "requirement_ids": [
+              "r3"
+            ],
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "f4",
+            "front": "How do startup probes protect slow-starting applications in Kubernetes?",
+            "back": "Startup probes delay liveness and readiness checks until the application finishes its slow initialization phase, preventing premature restarts.",
+            "requirement_ids": [
+              "r6"
+            ],
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "f5",
+            "front": "What is the difference between spans, traces, and baggage in OpenTelemetry?",
+            "back": "A trace is a tree of spans representing a request, while baggage propagates key-value pairs across the entire distributed context.",
+            "requirement_ids": [
+              "r7"
+            ],
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "f6",
+            "front": "How do you mitigate Server-Side Request Forgery when fetching external URLs?",
+            "back": "Validate and sanitize URLs, use an egress proxy with strict allowlists, and block internal IP ranges and metadata services.",
+            "requirement_ids": [
+              "r9"
+            ],
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "f7",
+            "front": "How do you optimize AWS compute costs without impacting service reliability?",
+            "back": "Use Savings Plans for baseline predictable loads and Spot Instances with interruption handlers for fault-tolerant stateless workers.",
+            "requirement_ids": [
+              "r10"
+            ],
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "f8",
+            "front": "What sections must be included in a technical design document for cross-functional alignment?",
+            "back": "Context, goals, non-goals, architecture diagrams, proposed solutions, alternative solutions with trade-off matrices, and rollout plans.",
+            "requirement_ids": [
+              "r11"
+            ],
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "f9",
+            "front": "How does Rust enforce memory safety at compile time without a garbage collector?",
+            "back": "Rust uses ownership rules and a compile-time borrow checker to prevent data races and use-after-free bugs.",
+            "requirement_ids": [
+              "r12"
+            ],
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "f10",
+            "front": "How do you manage breaking changes in an open-source library?",
+            "back": "Use Semantic Versioning, establish clear deprecation cycles with warning logs, and maintain robust backward-compatibility test suites.",
+            "requirement_ids": [
+              "r13"
+            ],
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "f11",
+            "front": "What happens to performance when CPU-intensive synchronous operations run in Node.js?",
+            "back": "Synchronous operations block the single-threaded event loop, starving subsequent tasks and causing latency spikes and dropped requests.",
+            "requirement_ids": [
+              "r1"
+            ],
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          },
+          {
+            "id": "f12",
+            "front": "How do you resolve performance issues from table bloat and stale statistics in PostgreSQL?",
+            "back": "Run VACUUM to remove dead tuples, REINDEX to rebuild bloated indexes, and ANALYZE to update query planner statistics.",
+            "requirement_ids": [
+              "r2"
+            ],
+            "origin": "generated",
+            "pinned": false,
+            "edited": false
+          }
+        ],
+        "schedule": {
+          "days_available": 6,
+          "days": [
+            {
+              "day": 1,
+              "focus": "PostgreSQL tuning, Distributed systems + Behavioural: On-call leadership",
+              "question_ids": [
+                "q3",
+                "q19",
+                "q5"
+              ],
+              "minutes": 135
+            },
+            {
+              "day": 2,
+              "focus": "Behavioural: Mentoring engineers, Stakeholder communication + Node.js experience, Kubernetes operations",
+              "question_ids": [
+                "q13",
+                "q1",
+                "q16",
+                "q6"
+              ],
+              "minutes": 120
+            },
+            {
+              "day": 3,
+              "focus": "Observability systems, Security best practices",
+              "question_ids": [
+                "q7",
+                "q8",
+                "q9"
+              ],
+              "minutes": 90
+            },
+            {
+              "day": 4,
+              "focus": "Technical documentation, PostgreSQL tuning + Behavioural: On-call leadership, Mentoring engineers",
+              "question_ids": [
+                "q10",
+                "q4",
+                "q20",
+                "q14"
+              ],
+              "minutes": 110
+            },
+            {
+              "day": 5,
+              "focus": "Node.js experience + Company fit",
+              "question_ids": [
+                "q2",
+                "q18",
+                "q17"
+              ],
+              "minutes": 90
+            },
+            {
+              "day": 6,
+              "focus": "Rust language, Open source maintenance",
+              "question_ids": [
+                "q11",
+                "q12"
+              ],
+              "minutes": 60
+            }
+          ]
+        },
+        "coverage": {
+          "uncovered_requirement_ids": [],
+          "passes": 2,
+          "history": [
+            {
+              "pass": 1,
+              "gaps": [
+                "r5"
+              ]
+            },
+            {
+              "pass": 2,
+              "gaps": []
+            }
+          ]
+        },
+        "meta": {
+          "crawl_error": null,
+          "research_skipped": "SEARCH_SKIPPED_LOCAL_SITE",
+          "discussion_searched": false,
+          "discussion_found": 0,
+          "discussion_sources": [],
+          "hiring_page_found": true,
+          "hiring_pages": [
+            "http://localhost:8099/acme/handbook/people/how-we-interview.html"
+          ],
+          "skipped_sources": [],
+          "research_notes": [
+            "Public discussion was not searched (local or unusable company address)."
+          ],
+          "thin_description": false,
+          "brief_fallback": null,
+          "flashcards_error": null,
+          "fallback_questions": []
+        }
+      },
+      "error": null
+    }
+  ]
+}
