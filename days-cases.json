@@ -1,0 +1,6 @@
+[
+  {"id":"dup-a","jd":"Backend Engineer\n\nRequirements:\n- 3+ years of Node.js (required)\n- Experience with MongoDB (required)\n- Docker is a plus","company_url":"https://example.com","days":5},
+  {"id":"dup-b","jd":"Backend Engineer\n\nRequirements:\n- 3+ years of Node.js (required)\n- Experience with MongoDB (required)\n- Docker is a plus","company_url":"https://example.com","days":5},
+  {"id":"one-day","jd":"Backend Engineer\n\nRequirements:\n- 3+ years of Node.js (required)\n- Experience with MongoDB (required)\n- Docker is a plus","company_url":"https://example.com","days":1},
+  {"id":"sixty-day","jd":"Backend Engineer\n\nRequirements:\n- 3+ years of Node.js (required)\n- Experience with MongoDB (required)\n- Docker is a plus","company_url":"https://example.com","days":60}
+]
