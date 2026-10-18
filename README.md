@@ -1,279 +1,201 @@
-# Interview Prep Kit
+# AI Interview Prep Kit
 
-Paste a job description, add the company website and the number of days you have, and the app researches the company and builds a complete interview prep kit: company brief, role breakdown, categorised question bank, flashcards and a day-by-day study schedule. Every part of the kit can be edited, reordered, extended or regenerated, and the flashcards can be practised inside the app.
+Paste a job description and a company website, say how many days you have, and the app researches the company and builds a personalised interview kit: company brief, role breakdown, categorised question bank, flashcards and a day-by-day study schedule. Everything can be edited, reordered and regenerated, and you can practise against it inside the app.
 
-- **Live app:** https://interview-prep-kit-three.vercel.app
-- **API:** https://interview-prep-kit-wsau.onrender.com
-- **Repository:** https://github.com/vinayyamana/interview-prep-kit
-
-> The API runs on Render's free tier, so the first request after a quiet period can take about 50 seconds.
-
-## Features
-
-- **Company research:** crawls the company's own site, then searches public discussion (Hacker News) about how the company interviews.
-- **Requirement extraction:** turns the job description into `must` / `nice` requirements with stable ids.
-- **Question bank:** technical, behavioural, system-design and company-fit questions, each linked to the requirements it covers.
-- **Coverage guarantee:** code checks every must-have requirement has a question, runs up to 2 gap-closing rounds, then adds a deterministic fallback so no must-have is ever left uncovered.
-- **Flashcards and practice mode:** Space flips a card, `1` / `2` / `3` rate Hard / OK / Easy, arrow keys move between cards. Cards you felt least sure about come first next session.
-- **Study schedule:** exactly the number of days requested (1 to 60), hardest material first, computed by code.
-- **Edit and regenerate safely:** edited, pinned and hand-written items are never overwritten when one section is regenerated.
-- **Auth:** register, login and logout with server-side sessions; every kit is scoped to its owner.
-- **Batch mode:** generate many kits from a JSON file with one command.
+- Live app: https://interview-prep-kit-three.vercel.app
+- API: https://interview-prep-kit-wsau.onrender.com
+- Repository: https://github.com/vinayyamana/interview-prep-kit
+- Creative feature: **Mock Interview + Weak Spots report** (see below)
 
 ## Tech stack
 
 | Layer | Choice |
-| --- | --- |
-| Frontend | Next.js (TypeScript), Tailwind CSS, deployed on Vercel |
-| Backend | Node.js + Express (JavaScript), deployed on Render |
-| Database | MongoDB through Mongoose |
-| Scraping | `undici`, `cheerio`, `robots-parser` |
-| Validation | `zod` |
-| LLM | Google Gemini (free tier) via `@google/genai` |
-| Tests | Vitest (32 server tests in 7 files, plus a client test for practice ordering) |
+|---|---|
+| Frontend | Next.js + Tailwind CSS (`client/`) |
+| Backend | Node.js + Express (`server/`) |
+| Database | MongoDB via Mongoose (Atlas free tier when deployed) |
+| Auth | Cookie sessions with `express-session`, stored in MongoDB with `connect-mongo`, passwords hashed with `bcrypt` |
+| Language | JavaScript |
+| Retrieval | `undici` for fetching, `cheerio` for HTML parsing and cleaning, `robots-parser` for robots.txt |
+| Validation | zod |
+| Tests | Vitest (8 files, 45 tests) |
+| LLM | Google Gemini, model `gemini-2.5-flash` by default (override with `GEMINI_MODEL`), called over REST |
 
-## Getting started
+This is the preferred stack, so nothing needs justifying.
 
-### Prerequisites
+## Setup
 
-- Node.js 20+
-- A MongoDB connection string (local or Atlas)
-- A Gemini API key
+### Local
 
-### Install
+    git clone https://github.com/vinayyamana/interview-prep-kit
+    cd interview-prep-kit
+    npm run install:all
 
-```bash
-git clone https://github.com/vinayyamana/interview-prep-kit.git
-cd interview-prep-kit
-npm run install:all
-```
+Copy `server/.env.example` to `server/.env` and fill it in. Then run the two apps in separate terminals:
 
-This runs `npm install` in both `server/` and `client/`.
+    cd server && npm run dev
+    cd client && npm run dev
 
-### Configure
+The client runs on http://localhost:3000 and expects the API at `NEXT_PUBLIC_API_URL` (default `http://localhost:5000`).
 
-1. Copy `server/.env.example` to `server/.env` and fill in the values from the table below.
-2. Create `client/.env.local` with `NEXT_PUBLIC_API_URL` set to the address the server prints when it starts.
+### Environment variables
 
-### Run
+Server (`server/.env`, see `server/.env.example`):
 
-```bash
-npm --prefix server start        # API
-npm --prefix client run dev      # UI
-```
+| Variable | Purpose |
+|---|---|
+| `GEMINI_API_KEY` | Gemini API key (free tier is enough) |
+| `GEMINI_MODEL` | Optional, defaults to `gemini-2.5-flash` |
+| `MONGO_URI` | MongoDB connection string |
+| `SESSION_SECRET` | Signs the session cookie |
+| `PORT` | Port the API listens on, 5000 by default |
+| `LLM_CACHE` | Set to `0` to turn off the on-disk response cache |
+| `LLM_MIN_INTERVAL_MS` | Optional, minimum gap between model calls, default 2000 |
 
-## Environment variables
+Client:
 
-Secrets live only in environment variables and are never committed.
+| Variable | Purpose |
+|---|---|
+| `NEXT_PUBLIC_API_URL` | Base URL of the API |
 
-| Variable | Used by | Purpose |
-| --- | --- | --- |
-| `GEMINI_API_KEY` | server, batch | API key for the LLM provider |
-| `GEMINI_MODEL` | server, batch | Gemini model name (read at runtime, so the model can change without touching code) |
-| `MONGO_URI` | server | MongoDB connection string |
-| `JWT_SECRET` | server | Secret used to sign authentication tokens |
-| `SESSION_SECRET` | server | Secret used to sign session cookies |
-| `PORT` | server | Port the API listens on (default 5000) |
-| `NODE_ENV` | server | Set to `production` on Render: secure cross-site cookies and private-address blocking |
-| `LLM_CACHE` | server, batch | Controls the on-disk LLM response cache |
-| `EVAL_CONCURRENCY` | batch (optional) | Cases processed in parallel (default 2) |
-| `EVAL_CASE_TIMEOUT_MS` | batch (optional) | Per-case timeout (default 170000) |
-| `NEXT_PUBLIC_API_URL` | client | Base URL of the API |
+The frontend origins allowed by CORS are listed in `allowedOrigins` in `server/index.js` (the Vercel URL and `http://localhost:3000`). Add your own origin there if you host the frontend somewhere else.
 
-## Batch mode
+### Deployed
 
-Generate kits without the UI:
+- Frontend: Vercel, https://interview-prep-kit-three.vercel.app (root directory `client/`, `NEXT_PUBLIC_API_URL` set to the Render URL).
+- Backend: Render, https://interview-prep-kit-wsau.onrender.com (root directory `server/`, all server variables above set in the dashboard). The server trusts Render's proxy so secure session cookies work.
 
-```bash
-npm --prefix server install
-cp server/.env.example server/.env   # add your GEMINI_API_KEY and GEMINI_MODEL
-npm run evaluate -- --input edge-cases.json --output kits.json
-```
+Secrets live only in the hosting dashboards and in local `.env` files, never in the repo. The Render free tier sleeps when idle, so the first request after a pause can take 30 to 50 seconds.
 
-- **Input:** an array of `{ id, jd, company_url, days }`. `edge-cases.json` covers a normal posting, a two-line stub, a company with no hiring page, an unreachable company URL and the same posting submitted twice.
-- **Output:** one JSON file `{ version, generated_at, kits: [{ id, status, kit, error }] }`. `status` is `failed` only when no kit could be produced at all.
-- **Same pipeline as the website:** both call `assembleKit`, so what is tested in batch is what users get.
-- **Resilient:** the output file is rewritten after every case, and one failing case never stops the run.
-- **Error codes:** `COMPANY_UNREACHABLE`, `LLM_FAILED`, `LLM_RATE_LIMITED`, `INVALID_KIT`, `CASE_TIMEOUT`, `INVALID_CASE`.
+### Batch entry point
 
-## Tests
+From the repository root:
 
-```bash
-npm --prefix server test
-npm --prefix client test
-```
+    npm run install:all
+    npm run evaluate -- --input <cases.json> --output <kits.json>
 
-Covered: schedule allocation (including 1-day and 60-day schedules), coverage checking, gap closing with a mocked model (rate limits, invented ids), kit structure validation, URL validation, crawl link ranking and practice ordering.
+The root script forwards to `server/scripts/evaluate.js`. Put `GEMINI_API_KEY` and `MONGO_URI` in `server/.env` first (the batch run loads that file; copy it from `server/.env.example`).
 
-The stack follows the brief's preferred stack, so no substitutions need justifying.
+It reads an array of `{ id, jd, company_url, days }`, runs the same `assembleKit` pipeline the web app uses, and writes `{ version, generated_at, kits: [{ id, status, kit, error }] }`. Cases run with limited concurrency, and a case that fails is recorded and the run continues. A case is `failed` only when no kit could be produced at all (for example the model stays unavailable after retries); the error code and message are recorded. A case that could only be partly researched, such as a missing hiring page or an unreachable company site, is still `ok` with the gap recorded in the kit. For example, a case whose `company_url` is unreachable still returns an `ok` kit built from the job description, with the company side marked as not available.
 
-## LLM provider and model
+### Tests
 
-Provider: **Google Gemini** (free tier), through the `@google/genai` SDK. The model name is read from the `GEMINI_MODEL` environment variable (this deployment uses `gemini-3.5-flash-lite`), so the model can change without touching code.
+    npm test
 
-Free tiers limit tokens per minute as well as requests, so the LLM client (`services/llm/client.js`) paces calls, applies a timeout to each call, honours retry-delay hints from rate-limit responses, retries with backoff, and caches responses on disk (`.llm-cache/`) keyed by a hash of model, system prompt and prompt.
+(runs the Vitest suite in `server/`)
+
+## Architecture
+
+    client/ (Next.js)  --HTTP/cookies-->  server/ (Express)  -->  MongoDB
+                                              |
+                                              +--> services/retrieval   fetchPage, cleanText, crawlSite, searchDiscussion
+                                              +--> services/generate    LLM steps (requirements, brief, questions, flashcards, gap closing, scoring)
+                                              +--> services/schedule    deterministic allocation
+                                              +--> services/practice    deterministic weak-spot maths
+                                              +--> services/security    URL validation
+                                              +--> services/llm         throttled, retrying Gemini client
+
+Retrieval, extraction, generation, scheduling and persistence are separate modules. Routes only orchestrate.
+
+## Research and generation sequence
+
+The kit is built in steps that respond to what was found, not by one prompt:
+
+1. **Extract requirements** from the pasted JD. Each gets a stable id, a kind (technical, behavioural, domain) and a priority (must or nice) taken from how the posting words it. A thin JD produces a thin kit, flagged in the UI.
+2. **Crawl the company site.** Links are ranked and the promising ones fetched, so the hiring page is found wherever it lives instead of from a fixed path list.
+3. **Look for public discussion** of the company's interview process (`searchDiscussion.js`, Hacker News via the Algolia search API).
+4. **Company brief** from the crawled pages and verified facts. If nothing could be retrieved the brief says so rather than inventing anything. The model's output is rejected and retried if it copies scraped text or repeats itself.
+5. **Questions, one call per category** (technical, behavioural, system-design, company-fit), each with its own prompt and its own eligible requirements. Categories with no fitting requirement are skipped with a reason (for example `NO_MATCHING_REQUIREMENTS`, `NOT_RELEVANT_FOR_ROLE`), and company-fit questions come only from facts found on the company's site, so a company with nothing published gets none (`NO_COMPANY_INFO`).
+6. **Flashcards** generated as short recall questions from the questions.
+7. **Coverage check (code, not the model).** Every requirement id must have at least one question. Uncovered ones are gaps.
+8. **Second pass** (`closeGaps.js`). The first draft is pass 1. Gaps are sent back to the model to generate the missing questions and coverage is checked again, for at most 2 further rounds (3 passes in total). It stops as soon as no gaps remain, or as soon as the model is rate limited. Any gap still open then gets a deterministic fallback question and the kit is flagged as degraded, so a must-have is never left uncovered. Every round is recorded in `coverage.history` and the UI shows it. The cap keeps the run bounded on a free tier where each round costs model calls and tokens; a round that did not close the gap is unlikely to be closed by repeating the same prompt, so the code falls back instead of looping.
+9. **Schedule (code, not the model).**
+10. **Validate** the kit against a zod schema before saving.
 
 ## Retrieval approach and sources
 
 Sources used:
 
-1. **The company's own website**, discovered by crawling from the URL the user gives.
-2. **Public discussion** about the company's interview process, searched on Hacker News through its public Algolia search API (stories and comments, 20 hits per query). Hits link back to the original `news.ycombinator.com` item. It is a single source, which is stated honestly in the kit when it returns nothing.
-3. **The pasted job description** (no retrieval needed).
+- **The company's own website**, starting from the URL the user gives. Up to 8 pages are fetched per run, within a time budget. Links are followed (relative links included, so local test servers work) and ranked to find about and hiring pages.
+- **Hacker News**, through the public Algolia search API (`hn.algolia.com`), for public discussion of the company's interview process. No other third-party site is scraped.
 
-How the crawl works:
+How retrieval behaves:
 
-- Every page is validated, fetched with a size and content-type limit, and cleaned to plain text.
-- The hiring or about page is never hard-coded. The crawler collects links from the pages it fetches, resolves relative links against the page URL, ranks them by how likely they are to describe the company or how it hires, and fetches the best candidates.
-- Requests are rate limited and retried with backoff. A source that cannot be fetched is skipped and reported instead of failing the run.
-- `pages_used` in the kit lists only the URLs that were actually used.
-- `robots.txt` and site terms are respected.
-- Public discussion search is skipped for local addresses. If it finds nothing, the brief says so instead of inventing anything.
-
-## Research and generation sequence
-
-Each step reacts to what the previous one found. The kit is not one prompt that returns everything.
-
-| # | Step | Responsibility |
-| --- | --- | --- |
-| 1 | Extract requirements | Model proposes, code cleans and assigns ids |
-| 2 | Crawl company site | Find and fetch the pages worth reading |
-| 3 | Search public discussion | Find how the company actually interviews |
-| 4 | Build verified company facts | Values and hiring stages, from fetched text only |
-| 5 | Write company brief | From those facts only; honest when facts are missing |
-| 6 | Generate questions per category | One model call per category, each with its own instructions |
-| 7 | Remove near-duplicates | Word-overlap similarity |
-| 8 | Coverage check and second pass | Code finds gaps, model fills them |
-| 9 | Flashcards | Generated from the final question set |
-| 10 | Schedule | Computed by code |
-| 11 | Validate | Kit is checked against the expected structure before saving |
-
-Details that matter:
-
-- The four categories (technical, behavioural, system-design, company-fit) are separate calls, each receiving only the requirements that fit it. "5+ years of React" leads to technical questions, while "mentoring junior engineers" leads to behavioural ones.
-- If a hiring process was found (for example a take-home followed by a system design round), it changes what the system-design and company-fit calls ask for. With no company facts, the company-fit call is skipped.
-- `priority` is `must` or `nice`, normalised from how the posting words it ("required" is `must`, "bonus points for" or "preferred" is `nice`). `kind` is `technical`, `behavioural` or `domain`.
-
-## Coverage and the second pass
-
-The comparison of requirements against questions is done in code (`checkCoverage`), never by the model. Every question carries `requirement_ids`; ids that do not exist in the kit are dropped.
-
-1. After the first draft, every must-have requirement without a question is a gap.
-2. The gap-closing step asks the model for questions only for those requirements, grouped by category, passing the already-asked prompts so it does not repeat itself. The result is merged, deduplicated and checked again.
-3. This runs for **at most 2 rounds**. One retry fixes most misses, and a third rarely helps while burning free-tier tokens. The kit reports `coverage.passes`.
-4. Any must-have still uncovered gets a deterministic fallback question linked to that requirement, so a kit never ships with uncovered must-haves.
-5. If the provider rate-limits during gap closing, the loop stops calling the model, goes straight to the fallback and marks the kit as degraded.
+- **robots.txt is respected.** It is fetched once per origin and cached (capped at 500 KB). A URL it disallows is skipped and reported with the reason `ROBOTS_DISALLOWED`. A missing or unusable robots.txt is treated as no restrictions.
+- Only `text/html` responses are processed, and a page larger than 3 MB is rejected.
+- A source that cannot be fetched is skipped and recorded, never fatal. Requests are rate limited with backoff.
+- The discussion search is skipped for local addresses (a local test server has no real company identity), and if the search is unavailable the kit records that instead of failing.
+- Fetched page text and the JD are treated as untrusted data: they are placed inside delimited blocks, the delimiter characters are stripped from scraped text so a page cannot close the block early, and the system prompts say never to follow instructions found in them.
 
 ## Generated, edited and pinned state
 
-Every question and flashcard carries two fields:
+Questions, flashcards and the company brief carry an `edited` boolean.
 
-| Field | Values | Meaning |
-| --- | --- | --- |
-| `origin` | `generated`, `edited`, `user` | `generated`: produced by the model and untouched. `edited`: generated, then changed by the user. `user`: written by hand |
-| `pinned` | `true` / `false` | the user wants it kept in place |
+- Generated items start with `edited: false`.
+- Editing an item inline, or moving a question to another category, sets `edited: true`.
+- Items added by hand get an id like `q-user-<random>` and `edited: true`.
+- `edited: true` is the pinned state: regeneration never removes or rewrites it. There is no separate "pinned" flag; edited and pinned are the same thing, which keeps the model simple.
 
-An item is **protected** when `pinned` is true or `origin` is `edited` or `user`. Only untouched, unpinned, generated items are ever replaced by a regeneration. Freshly generated items always start as `origin: "generated"` and `pinned: false`.
+**Regenerating one section** (the brief, one question category, flashcards or the schedule):
 
-When one section is regenerated:
+1. The slow model call runs against a snapshot.
+2. The kit is then re-loaded from the database and the merge is applied to the latest data, so edits made while the model was running are not lost.
+3. Everything outside the section, plus every edited item inside it, is kept in its original order.
+4. New items that nearly repeat a kept item are dropped, using word overlap (overlap coefficient of at least 0.7) over prompt and outline, so a reworded pinned question is not regenerated.
+5. If the model returns nothing, or only duplicates, the section is left exactly as it was.
+6. A pinned company brief is only replaced when the request sends `force: true`. The brief is regenerated with the same generator as the first draft, and if the site cannot be read at that moment the existing brief is kept.
 
-- Only that scope is replaced (the company brief, one question category, flashcards, or the schedule), and every protected item inside it is kept in its current order.
-- Items outside the scope are left untouched.
-- New generated items that nearly duplicate a kept item are dropped.
-- The merge is applied to the **latest saved kit**, not to the copy read before the slow model call, so edits made while a regeneration was running are not overwritten.
-- If the model returns nothing, the section is left exactly as it was.
-- An edited company brief stays as is unless regeneration is forced.
-- Regeneration is refused while a kit is still generating.
-
-The schedule is rebuilt whenever a question is added or deleted, so it never points at a question that no longer exists.
+The UI updates reordering optimistically and rolls back to server state on failure.
 
 ## Schedule allocation
 
-The schedule is a pure function in code with no model call.
+Done in code (`services/schedule/buildSchedule.js`), never by the model.
 
-- It produces **exactly** the number of days requested, 1 to 60. The API validates the range, and tests cover a 1-day and a 60-day schedule.
-- Every must-have requirement appears somewhere in the schedule.
-- Higher-priority and harder material is allocated to earlier days, so the hardest topics are not left for the night before.
-- Every day has a unique focus label, a list of existing question ids and an integer number of minutes.
+- **Exact day count.** The schedule has exactly the number of days requested, from 1 to 90. The function throws if it ever produces a different number.
+- **Ordering.** Questions are grouped by their primary requirement. Groups that cover a must-have come before nice-to-have groups, and harder groups come first. The groups are then dealt round-robin, so every requirement gets its hardest question before any requirement gets its second one. A must-have never waits behind another requirement's whole question set.
+- **Time.** Each question costs minutes by difficulty (1 = 20, 2 = 30, 3 = 45). The ordered list is cut into consecutive days aiming at an equal share of the remaining minutes, and every day gets at least one question. Minutes are always integers.
+- **Fewer questions than days.** Each question gets its own day, and the remaining days are review days that repeat earlier questions for half the time (minimum 15 minutes).
+- **Focus labels.** Each day's focus is built from its categories and requirement topics, and labels are made distinct across days.
+- **Must-have coverage.** Every question is scheduled, and the coverage check guarantees every must-have has a question, so every must-have appears in the schedule. `findUnscheduledMustIds` checks this.
+- The schedule is rebuilt whenever questions are added, deleted or regenerated, so it never points at a missing question.
 
 ## Practice mode
 
-Flashcards are shown one at a time with the answer hidden until revealed. Space flips a card, `1`, `2` and `3` record Hard, OK or Easy, and the arrow keys move between cards. Each rating is saved to the backend. A card with a rating counts as covered, and the rest appear under "Not covered yet". The next session is ordered by confidence, so the cards the user felt least sure about come first.
+Flashcards step through one at a time with reveal, 1/2/3 confidence ratings (Hard, OK, Easy), keyboard shortcuts, a covered / not covered list, and a "start next session, least confident first" button. I chose a simple confidence-weighted sort over spaced repetition: with a few days to the interview there is no long-term interval to schedule, and "weakest first" is easy to explain. Ratings are saved on the server, with localStorage as a fast fallback.
 
-**Decision:** a confidence-weighted ordering instead of spaced-repetition intervals. The kit is used over a few days before one interview, where simple ordering is easy to explain and predict.
+## Creative feature: Mock Interview + Weak Spots
 
-## Generation, failures and double submits
+**Problem:** flashcards test recall, but nothing tests whether you can actually explain an answer, and people do not know which requirements to revise the night before.
 
-- Creating a kit returns immediately and the pipeline runs in the background. The kit moves through `queued`, `crawling`, `researching`, `generating`, `checking-coverage`, then `done` or `failed`, with a readable progress line that the UI polls and shows.
-- A failed kit stores a structured error `{ code, message }` that the UI displays.
-- Submitting the same description, company URL and number of days twice returns the existing kit. The input is normalised and hashed, and a unique index per user also protects against two identical requests arriving at the same moment. A failed kit is replaced on retry.
+- **Mock Interview:** pick a question (or "pick for me"), type your answer, and get a 1 to 5 score, strengths, gaps and feedback judged against the question's answer outline. The answer is passed to the model as untrusted data, the output is validated against a schema (integer 1 to 5), and invalid output is retried. Scores are saved with the kit using the same merge-on-latest-data approach as regeneration.
+- **Weak Spots report:** per requirement, mastery is the average of flashcard confidence and mock scores for the questions and cards that cover it. It is calculated entirely in code, with no model involved, and covered by unit tests. Requirements are sorted must before nice, then least mastered first. Anything below 60% is "weak". The report also builds a short last-night revision list of the weakest questions and the cards you have not rated Easy.
 
-## Edge cases
+## Edge cases and failure handling
 
-| Case | Behaviour |
-| --- | --- |
-| Company URL invalid, 404 or timing out | Retried with backoff, then recorded as a gap. The kit is still produced from the job description, the brief says company information was unavailable, and company-fit questions are skipped |
-| No discoverable hiring or about page | Kit is `ok`, company facts are limited to what was found, nothing is invented |
-| Two-line job description | Thin kit that states detail was limited; no invented requirements |
-| Public discussion finds nothing | Stated honestly in the brief and sources |
-| Model returns invalid JSON or an incomplete kit | The call is retried, a fact-based fallback is used where needed, and the kit is validated before saving |
-| Provider rate limit or brief failure | Pacing, retry-delay handling, backoff, response cache, and an early switch to the deterministic fallback |
-| Same posting submitted twice | Existing kit returned |
-| 1-day or 60-day schedule | Allocated exactly, covered by tests |
+- **Invalid, 404 or timed-out company URL:** the site is recorded as unreachable, the kit is still built from the JD, and the UI shows the gap. A batch case is only `failed` when no kit can be produced at all.
+- **No hiring or about page:** the kit says so, and no company-fit questions are invented.
+- **Two-line JD:** few requirements are extracted and the kit is marked thin.
+- **No public discussion found:** reported honestly, nothing fabricated.
+- **Invalid model JSON or incomplete kit:** retried, then validated against the schema before saving.
+- **Rate limits and provider errors:** calls are serialised and throttled, 429 and 5xx are retried with exponential backoff and jitter (honouring `Retry-After`), and the coverage loop has a deterministic fallback.
+- **Same JD, company and days submitted twice:** a hash of the normalised input with a unique index per user returns the existing kit instead of generating again.
+- **Slow generation:** creation returns 202 straight away, the pipeline runs in the background, and the UI polls every 2 seconds and shows the current step. Kits left half-finished by a server restart are marked failed on startup.
+- **1-day and 60-day schedules:** both are supported by the allocator (limit is 1 to 90 days).
 
-## Creative feature
+## Security
 
-No optional creative feature was added. The time went into the builder, regeneration safety and the research pipeline.
-
-## Project structure
-
-```
-client/                  Next.js UI: login, kit list, create form, kit builder, practice mode
-server/
-  index.js               Express entry point
-  authRoutes.js          Register, login, logout
-  authMiddleware.js      Session guard for protected endpoints
-  services/
-    assembleKit          Orchestrates the whole pipeline (website and batch both call this)
-    retrieval/           crawlSite, fetchPage, cleanText, searchDiscussion
-    extract/             Requirement extraction and clean-up
-    generate/            Company brief, questions, flashcards, gap closing
-    kit/                 Merge of regenerated sections into the saved kit
-    coverage/            checkCoverage (pure code)
-    schedule/            buildSchedule (pure code)
-    security/            validateUrl
-    llm/                 Client with pacing, retries and cache
-  scripts/evaluate.js    Batch entry point
-fixtures/                Local test sites used by the batch fixtures
-```
-
-## Deployment
-
-- **Backend:** Render web service, root directory `server`, build command `npm install`, start command `npm start`. Environment variables are set in the Render dashboard.
-- **Frontend:** Vercel project, root directory `client`, with `NEXT_PUBLIC_API_URL` pointing at the Render URL.
-
-## Reliability and security
-
-- Every external URL is validated before it is fetched, and again before a re-crawl. Private and loopback addresses are rejected in production.
-- `robots.txt` and site terms are respected; pages are fetched with size and content-type limits.
-- Page text is treated as data, never as instructions, and the extraction step removes requirements that look injected.
-- The LLM client paces calls, applies timeouts, honours retry hints from rate-limit responses, retries with backoff and caches responses on disk.
-- Submitting the same description, company URL and days twice returns the existing kit.
-- Kits left mid-generation by a server restart are marked failed so they never spin forever.
-
-## Key decisions and trade-offs
-
-- **Code decides what must not be left to the model:** schedule allocation, coverage gaps, id validation, duplicate removal and the guarantee for uncovered must-haves.
-- **Honest output over complete-looking output:** a thin posting or an unknown company produces a thin kit or an honest brief.
-- **Two gap-closing rounds, then a deterministic fallback:** bounded token spend on a free tier.
-- **Edited items win:** a user's work is never discarded by regeneration.
-- **Confidence-weighted practice ordering** instead of spaced-repetition intervals, since the kit is used over a few days before one interview.
+- Passwords are hashed with bcrypt (10 rounds) and never stored in plain text.
+- Sessions are server-side (stored in MongoDB), the cookie is secure behind Render's proxy, and CORS only allows the listed frontend origins with credentials.
+- Kits are scoped to the logged-in user; every kit route checks ownership, and signed-out requests get 401.
+- External URLs are validated before fetching (`assertSafeUrl`), fetched through a safe agent, and private and loopback addresses are rejected in production.
+- Only `text/html` is processed, pages over 3 MB are rejected, and robots.txt is read with a 500 KB cap.
+- Fetched text and the JD are never treated as instructions.
 
 ## Known limitations
 
-- Free hosting means a slow first request after idle, and a free-tier model can still be slow under heavy use.
-- Company-fit questions are only as good as the facts found on the company's site.
-- Public discussion comes from Hacker News only, so coverage is good for tech companies and thin for others.
-- Multiple roles are prepared by creating one kit per role; bulk upload is available through the batch command, not the web form.
-- Practice ordering is a confidence-weighted sort, not spaced repetition.
--
+- Public discussion comes from Hacker News only, so many companies will return nothing there, and the kit says so.
+- At most 8 pages are crawled per company, so a hiring page buried deeper can be missed.
+- Reordering uses up/down arrows, not drag and drop.
+- Mock interview scoring is a model judgement against an outline, so scores are indicative, not exact.
+- Weak-spot thresholds and weights are simple heuristics, not tuned on real data.
+- Free-tier hosting means cold starts and Gemini free-tier token limits, so generation can be slow under load.
