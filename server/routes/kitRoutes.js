@@ -11,6 +11,8 @@ const { crawlSite } = require("../services/retrieval/crawlSite");
 const { searchDiscussion } = require("../services/retrieval/searchDiscussion");
 const { generateQuestions, buildResearch } = require("../services/generate/questions");
 const { generateFlashcards } = require("../services/generate/flashcards");
+const { scoreAnswer, MAX_ANSWER_CHARS } = require("../services/generate/scoreAnswer");
+const { computeWeakSpots } = require("../services/practice/weakSpots");
 const { buildSchedule } = require("../services/schedule/buildSchedule");
 const { assertSafeUrl } = require("../services/security/validateUrl");
 
@@ -365,6 +367,36 @@ router.patch(
 );
 
 // POST /api/kits/:id/flashcard - add a new, user-written flashcard
+router.post(
+  "/:id/flashcard",
+  requireAuth,
+  wrap(async (req, res) => {
+    const { front, back, requirement_ids = [] } = req.body || {};
+    if (typeof front !== "string" || !front.trim() || typeof back !== "string" || !back.trim()) {
+      return res.status(400).json({ message: "front and back are required" });
+    }
+
+    const kit = await findOwnKit(req);
+    if (!kit) return res.status(404).json({ message: "Kit not found" });
+
+    if (!kit.data) kit.data = {};
+    if (!kit.data.flashcards) kit.data.flashcards = [];
+
+    const newCard = {
+      id: newUserItemId("f"),
+      front,
+      back,
+      requirement_ids: Array.isArray(requirement_ids) ? requirement_ids : [],
+      edited: true,
+    };
+    kit.data.flashcards.push(newCard);
+
+    kit.markModified("data");
+    await kit.save();
+    res.status(201).json(newCard);
+  })
+);
+
 // PATCH /api/kits/:id/practice - save one card's confidence (1 Hard, 2 OK, 3 Easy)
 router.patch(
   "/:id/practice",
@@ -408,6 +440,73 @@ router.delete(
     kit.markModified("data");
     await kit.save();
     res.status(204).send();
+  })
+);
+
+/* ---------- mock interview + weak spots ---------- */
+
+// POST /api/kits/:id/mock/score - score one typed answer against a question
+router.post(
+  "/:id/mock/score",
+  requireAuth,
+  wrap(async (req, res) => {
+    const { questionId, answer } = req.body || {};
+    if (typeof questionId !== "string" || typeof answer !== "string" || !answer.trim()) {
+      return res.status(400).json({ message: "questionId and a non-empty answer are required" });
+    }
+    if (answer.length > MAX_ANSWER_CHARS) {
+      return res.status(400).json({ message: `answer must be under ${MAX_ANSWER_CHARS} characters` });
+    }
+
+    const kit = await findOwnKit(req);
+    if (!kit) return res.status(404).json({ message: "Kit not found" });
+    if (!kit.data) return res.status(400).json({ message: "Kit has no data yet" });
+    if (kit.status !== "done") return res.status(409).json({ message: "Kit is still being generated" });
+
+    const question = (kit.data.questions || []).find((q) => q.id === questionId);
+    if (!question) return res.status(404).json({ message: "Question not found" });
+
+    const requirementTexts = (kit.data.role?.requirements || [])
+      .filter((r) => (question.requirement_ids || []).includes(r.id))
+      .map((r) => r.text);
+
+    // slow model call first, using the snapshot
+    let result;
+    try {
+      result = await scoreAnswer({ question, answer, requirementTexts });
+    } catch (err) {
+      console.error("MOCK SCORE ERROR:", err.stack);
+      return res.status(502).json({ message: "Scoring failed, please try again", error: err.message });
+    }
+
+    // then save against the LATEST data so edits made meanwhile survive
+    const saved = await commit(req, (d) => {
+      if (!(d.questions || []).some((q) => q.id === questionId)) return { gone: true };
+      const previous = d.mock?.[questionId];
+      const entry = {
+        ...result,
+        answer,
+        attempts: (previous?.attempts || 0) + 1,
+        scoredAt: new Date().toISOString(),
+      };
+      d.mock = { ...(d.mock || {}), [questionId]: entry };
+      return entry;
+    });
+
+    if (!saved || saved.gone) return res.status(404).json({ message: "Question not found" });
+    res.json(saved);
+  })
+);
+
+// GET /api/kits/:id/weak-spots - per-requirement mastery + revision list
+router.get(
+  "/:id/weak-spots",
+  requireAuth,
+  wrap(async (req, res) => {
+    const kit = await findOwnKit(req);
+    if (!kit) return res.status(404).json({ message: "Kit not found" });
+    if (!kit.data) return res.status(400).json({ message: "Kit has no data yet" });
+    res.json(computeWeakSpots(kit.data));
   })
 );
 

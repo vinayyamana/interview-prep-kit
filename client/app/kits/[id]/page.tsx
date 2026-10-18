@@ -51,15 +51,66 @@ type Kit = {
   data?: any;
 };
 
+type MockResult = {
+  score: number;
+  strengths: string[];
+  gaps: string[];
+  feedback: string;
+  answer: string;
+  attempts: number;
+  scoredAt: string;
+};
+
+type WeakItem = {
+  requirement_id: string;
+  text: string;
+  kind: string;
+  priority: "must" | "nice";
+  mastery: number | null;
+  status: "weak" | "not_practised" | "strong";
+  signals: number;
+};
+
+type WeakSpots = {
+  summary: {
+    requirements: number;
+    weak: number;
+    not_practised: number;
+    strong: number;
+    mock_answers: number;
+  };
+  items: WeakItem[];
+  revision: { question_ids: string[]; flashcard_ids: string[] };
+};
+
 type RegenSection = "questions" | "flashcards" | "company_brief" | "schedule";
 
 const API_BASE = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/kits`;
 
 const CATEGORIES = ["technical", "behavioural", "system-design", "company-fit"];
+const MAX_ANSWER_CHARS = 4000;
+
+const STATUS_LABEL: Record<WeakItem["status"], string> = {
+  weak: "Weak",
+  not_practised: "Not practised",
+  strong: "Strong",
+};
+const STATUS_STYLE: Record<WeakItem["status"], string> = {
+  weak: "text-red-700 bg-red-50 border-red-200 dark:text-red-300 dark:bg-red-950 dark:border-red-800",
+  not_practised:
+    "text-amber-800 bg-amber-50 border-amber-200 dark:text-amber-300 dark:bg-amber-950 dark:border-amber-800",
+  strong:
+    "text-green-700 bg-green-50 border-green-200 dark:text-green-300 dark:bg-green-950 dark:border-green-800",
+};
+const BAR_STYLE: Record<WeakItem["status"], string> = {
+  weak: "bg-red-500",
+  not_practised: "bg-gray-400",
+  strong: "bg-green-500",
+};
 
 const btnOutline =
   "text-xs text-blue-600 dark:text-blue-400 border border-blue-300 dark:border-blue-500 rounded px-2 py-1 disabled:opacity-50";
-const btnPrimary = "text-xs bg-blue-600 text-white rounded px-2 py-1";
+const btnPrimary = "text-xs bg-blue-600 text-white rounded px-2 py-1 disabled:opacity-50";
 const btnGhost = "text-xs border rounded px-2 py-1";
 const bodyText = "text-gray-700 dark:text-gray-300";
 const mutedText = "text-gray-600 dark:text-gray-300";
@@ -93,6 +144,18 @@ export default function KitPage() {
 
   // regenerate loading state, per section (questions:<category> for a single category)
   const [regenLoading, setRegenLoading] = useState<Record<string, boolean>>({});
+
+  // mock interview state
+  const [mockQId, setMockQId] = useState("");
+  const [mockAnswer, setMockAnswer] = useState("");
+  const [mockLoading, setMockLoading] = useState(false);
+  const [mockError, setMockError] = useState("");
+
+  // weak spots state (weakTick is bumped to force a refetch)
+  const [weak, setWeak] = useState<WeakSpots | null>(null);
+  const [weakLoading, setWeakLoading] = useState(false);
+  const [weakError, setWeakError] = useState("");
+  const [weakTick, setWeakTick] = useState(0);
 
   async function refreshKit() {
     try {
@@ -144,6 +207,73 @@ export default function KitPage() {
     return () => clearInterval(interval);
   }, [id, router]);
 
+  // ---------- weak spots ----------
+  async function loadWeakSpots() {
+    setWeakLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/${id}/weak-spots`, { credentials: "include" });
+      if (res.status === 401) {
+        router.push("/login");
+        return;
+      }
+      if (!res.ok) throw new Error(`Request failed with ${res.status}`);
+      setWeak(await res.json());
+      setWeakError("");
+    } catch (err: any) {
+      setWeakError(err.message || "Failed to load weak spots");
+    } finally {
+      setWeakLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (kit?.status === "done") loadWeakSpots();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, kit?.status, weakTick]);
+
+  // ---------- mock interview ----------
+  function pickQuestionForMe(questions: Question[], mock: Record<string, MockResult>) {
+    if (questions.length === 0) return;
+    const unanswered = questions.filter((q) => !mock[q.id]);
+    const pool = unanswered.length > 0 ? unanswered : questions;
+    const next =
+      unanswered.length > 0
+        ? pool[0]
+        : [...pool].sort((a, b) => (mock[a.id]?.score ?? 0) - (mock[b.id]?.score ?? 0))[0];
+    setMockQId(next.id);
+    setMockAnswer("");
+    setMockError("");
+  }
+
+  async function submitMockAnswer() {
+    if (!mockQId || !mockAnswer.trim() || mockLoading) return;
+    setMockLoading(true);
+    setMockError("");
+    try {
+      const res = await fetch(`${API_BASE}/${id}/mock/score`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionId: mockQId, answer: mockAnswer }),
+      });
+      if (res.status === 401) {
+        router.push("/login");
+        return;
+      }
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message || `Scoring failed with ${res.status}`);
+      }
+      setMockAnswer("");
+      await refreshKit();
+      setWeakTick((t) => t + 1);
+    } catch (err: any) {
+      setMockError(err.message || "Scoring failed, please try again");
+    } finally {
+      setMockLoading(false);
+    }
+  }
+
   // ---------- edit / delete question ----------
   function startEditQuestion(q: Question) {
     setEditingQId(q.id);
@@ -179,6 +309,7 @@ export default function KitPage() {
       });
       if (!res.ok && res.status !== 204) throw new Error(`Delete failed with ${res.status}`);
       await refreshKit();
+      setWeakTick((t) => t + 1);
     } catch (err: any) {
       setErrorMsg(err.message || "Failed to delete question");
     }
@@ -234,6 +365,7 @@ export default function KitPage() {
       });
       if (!res.ok && res.status !== 204) throw new Error(`Delete failed with ${res.status}`);
       await refreshKit();
+      setWeakTick((t) => t + 1);
     } catch (err: any) {
       setErrorMsg(err.message || "Failed to delete flashcard");
     }
@@ -330,6 +462,7 @@ export default function KitPage() {
       });
       if (!res.ok) throw new Error(`Regenerate failed with ${res.status}`);
       await refreshKit();
+      setWeakTick((t) => t + 1);
     } catch (err: any) {
       setErrorMsg(err.message || "Failed to regenerate");
     } finally {
@@ -381,10 +514,23 @@ export default function KitPage() {
   // Done - show the kit
   const data = kit.data;
   const questions: Question[] = data.questions || [];
+  const flashcards: Flashcard[] = data.flashcards || [];
   const questionCategories: string[] = Array.from(
     new Set([...CATEGORIES, ...questions.map((q) => q.category)])
   );
   const uncovered: string[] = data.coverage?.uncovered_requirement_ids || [];
+
+  const mock: Record<string, MockResult> = data.mock || {};
+  const selectedQuestion = questions.find((q) => q.id === mockQId);
+  const selectedResult = selectedQuestion ? mock[selectedQuestion.id] : undefined;
+  const answerTooLong = mockAnswer.length > MAX_ANSWER_CHARS;
+
+  const revisionQuestions = (weak?.revision.question_ids || [])
+    .map((qid) => questions.find((q) => q.id === qid))
+    .filter(Boolean) as Question[];
+  const revisionFlashcards = (weak?.revision.flashcard_ids || [])
+    .map((fid) => flashcards.find((f) => f.id === fid))
+    .filter(Boolean) as Flashcard[];
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-8">
@@ -747,15 +893,251 @@ export default function KitPage() {
             } catch {
               /* ignore */
             }
-            // durable save on the server
+            // durable save on the server, then refresh weak spots
             fetch(`${API_BASE}/${id}/practice`, {
               method: "PATCH",
               credentials: "include",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ cardId, confidence: value }),
-            }).catch(() => setErrorMsg("Could not save your rating to the server"));
+            })
+              .then(() => setWeakTick((t) => t + 1))
+              .catch(() => setErrorMsg("Could not save your rating to the server"));
           }}
         />
+      </section>
+
+      {/* ---------- Mock interview ---------- */}
+      <section aria-labelledby="mock-heading">
+        <h2 id="mock-heading" className="text-lg font-semibold mb-1">
+          Mock Interview
+        </h2>
+        <p className={`text-sm ${mutedText} mb-3`}>
+          Flashcards test recall. This tests whether you can actually explain an answer. Type your answer and
+          get scored against the reference outline.
+        </p>
+
+        {questions.length === 0 ? (
+          <p className={`text-sm ${mutedText}`}>Add or generate some questions first.</p>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <select
+                aria-label="Choose a question"
+                value={mockQId}
+                onChange={(e) => {
+                  setMockQId(e.target.value);
+                  setMockAnswer("");
+                  setMockError("");
+                }}
+                className="flex-1 border rounded p-2 text-sm bg-transparent min-w-0"
+              >
+                <option value="" className="text-black">
+                  Choose a question...
+                </option>
+                {questions.map((q) => (
+                  <option key={q.id} value={q.id} className="text-black">
+                    {mock[q.id] ? `[${mock[q.id].score}/5] ` : ""}
+                    {q.prompt.length > 70 ? q.prompt.slice(0, 70) + "..." : q.prompt}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={() => pickQuestionForMe(questions, mock)}
+                className={btnOutline}
+                type="button"
+              >
+                Pick for me
+              </button>
+            </div>
+
+            {selectedQuestion && (
+              <div className="border rounded-md p-3 space-y-3">
+                <div>
+                  <span className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    {selectedQuestion.category}
+                  </span>
+                  <p className="font-medium mt-1">{selectedQuestion.prompt}</p>
+                </div>
+
+                <div>
+                  <textarea
+                    aria-label="Your answer"
+                    className="w-full border rounded p-2 text-sm min-h-32"
+                    placeholder="Type your answer as you would say it in the interview..."
+                    value={mockAnswer}
+                    onChange={(e) => setMockAnswer(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) submitMockAnswer();
+                    }}
+                    disabled={mockLoading}
+                  />
+                  <div className="flex items-center justify-between mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    <span className={answerTooLong ? "text-red-600" : ""}>
+                      {mockAnswer.length}/{MAX_ANSWER_CHARS}
+                    </span>
+                    <span>Ctrl+Enter to submit</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={submitMockAnswer}
+                  disabled={mockLoading || !mockAnswer.trim() || answerTooLong}
+                  className={btnPrimary}
+                >
+                  {mockLoading ? "Scoring..." : "Score my answer"}
+                </button>
+
+                {mockError && (
+                  <p role="alert" className="text-sm text-red-700 bg-red-50 border border-red-200 rounded p-2">
+                    {mockError}
+                  </p>
+                )}
+
+                {selectedResult && (
+                  <div className="border-t pt-3 space-y-2" aria-live="polite">
+                    <p className="font-semibold">
+                      Score: {selectedResult.score}/5{" "}
+                      <span className="text-xs font-normal text-gray-500 dark:text-gray-400">
+                        (attempt {selectedResult.attempts})
+                      </span>
+                    </p>
+                    {selectedResult.feedback && <p className={`text-sm ${bodyText}`}>{selectedResult.feedback}</p>}
+                    {selectedResult.strengths.length > 0 && (
+                      <div className="text-sm">
+                        <p className="font-medium text-green-700 dark:text-green-400">Strengths</p>
+                        <ul className={`list-disc pl-5 ${bodyText}`}>
+                          {selectedResult.strengths.map((s, i) => (
+                            <li key={i}>{s}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {selectedResult.gaps.length > 0 && (
+                      <div className="text-sm">
+                        <p className="font-medium text-red-700 dark:text-red-400">Gaps</p>
+                        <ul className={`list-disc pl-5 ${bodyText}`}>
+                          {selectedResult.gaps.map((g, i) => (
+                            <li key={i}>{g}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    <details className="text-sm">
+                      <summary className="cursor-pointer text-blue-600 dark:text-blue-400">
+                        Show reference outline
+                      </summary>
+                      <p className={`mt-1 ${mutedText}`}>{selectedQuestion.answer_outline || "No outline."}</p>
+                    </details>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+
+      {/* ---------- Weak spots ---------- */}
+      <section aria-labelledby="weak-heading">
+        <div className="flex items-center justify-between mb-2">
+          <h2 id="weak-heading" className="text-lg font-semibold">
+            Weak Spots
+          </h2>
+          <button
+            onClick={() => setWeakTick((t) => t + 1)}
+            disabled={weakLoading}
+            className={btnOutline}
+          >
+            {weakLoading ? "Refreshing..." : "Refresh"}
+          </button>
+        </div>
+
+        {weakError && (
+          <p role="alert" className="text-sm text-red-700 bg-red-50 border border-red-200 rounded p-2 mb-2">
+            {weakError}
+          </p>
+        )}
+
+        {!weak && weakLoading && <p className={`text-sm ${mutedText}`}>Calculating...</p>}
+
+        {weak && weak.items.length === 0 && (
+          <p className={`text-sm ${mutedText}`}>No requirements to measure yet.</p>
+        )}
+
+        {weak && weak.items.length > 0 && (
+          <div className="space-y-4">
+            <p className={`text-sm ${bodyText}`}>
+              {weak.summary.weak} weak, {weak.summary.not_practised} not practised, {weak.summary.strong} strong
+              out of {weak.summary.requirements} requirements. Based on your flashcard ratings and{" "}
+              {weak.summary.mock_answers} mock answer(s).
+            </p>
+
+            <ul className="space-y-2">
+              {weak.items.map((i) => (
+                <li key={i.requirement_id} className="border rounded-md p-2">
+                  <div className="flex items-start justify-between gap-2 text-sm">
+                    <span className={bodyText}>
+                      {i.text}{" "}
+                      <span className="text-xs text-gray-500 dark:text-gray-400">({i.priority})</span>
+                    </span>
+                    <span
+                      className={`shrink-0 text-xs border rounded px-1.5 py-0.5 ${STATUS_STYLE[i.status]}`}
+                    >
+                      {STATUS_LABEL[i.status]}
+                    </span>
+                  </div>
+                  <div className="mt-2 flex items-center gap-2">
+                    <div
+                      className="h-2 flex-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"
+                      role="progressbar"
+                      aria-label={`Mastery of ${i.text}`}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={i.mastery === null ? 0 : Math.round(i.mastery * 100)}
+                    >
+                      <div
+                        className={`h-full ${BAR_STYLE[i.status]}`}
+                        style={{ width: `${i.mastery === null ? 0 : Math.round(i.mastery * 100)}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 w-10 text-right">
+                      {i.mastery === null ? "n/a" : `${Math.round(i.mastery * 100)}%`}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            {(revisionQuestions.length > 0 || revisionFlashcards.length > 0) && (
+              <div className="border rounded-md p-3 space-y-3">
+                <h3 className="font-semibold text-sm">Last-night revision list</h3>
+                {revisionQuestions.length > 0 && (
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+                      Questions
+                    </p>
+                    <ol className={`list-decimal pl-5 space-y-1 text-sm ${bodyText}`}>
+                      {revisionQuestions.map((q) => (
+                        <li key={q.id}>{q.prompt}</li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
+                {revisionFlashcards.length > 0 && (
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+                      Flashcards
+                    </p>
+                    <ol className={`list-decimal pl-5 space-y-1 text-sm ${bodyText}`}>
+                      {revisionFlashcards.map((f) => (
+                        <li key={f.id}>{f.front}</li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </section>
 
       {/* ---------- Coverage ---------- */}
